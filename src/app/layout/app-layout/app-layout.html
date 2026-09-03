@@ -1,0 +1,15 @@
+<div class="min-h-screen surface-ground flex">
+  <!-- Menú lateral fijo -->
+  <app-sidebar></app-sidebar>
+
+  <!-- Contenedor derecho -->
+  <div class="flex flex-column flex-auto min-w-0">
+    <!-- Barra superior fija -->
+    <app-topbar></app-topbar>
+
+    <!-- ÁREA DONDE CAMBIARÁN TUS PANTALLAS -->
+    <div class="p-4 md:p-5 flex flex-column flex-auto">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

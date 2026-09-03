@@ -1,0 +1,31 @@
+<div class="flex align-items-center justify-content-center min-h-screen surface-ground">
+  <p-card [style]="{ width: '400px', padding: '1rem' }" styleClass="shadow-4">
+    <div class="text-center mb-5">
+      <i class="pi pi-box text-primary text-5xl mb-3"></i>
+      <div class="text-900 text-3xl font-medium mb-3">Bienvenido</div>
+      <span class="text-600 font-medium line-height-3">Ingresa tus credenciales</span>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+      <div class="mb-4">
+        <label for="email" class="block text-900 font-medium mb-2">Correo Electrónico</label>
+        <input id="email" type="text" pInputText formControlName="email" class="w-full"
+          placeholder="admin@empresa.com" />
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="block text-900 font-medium mb-2">Contraseña</label>
+        <p-password id="password" formControlName="password" [toggleMask]="true" [feedback]="false" styleClass="w-full"
+          inputStyleClass="w-full"></p-password>
+      </div>
+
+      @if (errorMessage) {
+        <p-message severity="error" styleClass="w-full mb-4">{{errorMessage}}</p-message>
+      }
+
+      <p-button label="Iniciar Sesión" icon="pi pi-user" type="submit" [loading]="loading"
+        styleClass="w-full"></p-button>
+    </form>
+  </p-card>
+</div>

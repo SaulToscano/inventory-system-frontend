@@ -1,0 +1,129 @@
+<div class="card">
+  <h2 class="text-2xl font-bold mb-4 text-700">Catálogo de Productos</h2>
+
+  <p-dataView #dv 
+    [value]="products" 
+    [layout]="layout"
+    [paginator]="true"
+    [rows]="rows"
+    [lazy]="true"
+    (onLazyLoad)="loadData($event)"
+    [totalRecords]="totalRecords"
+    [loading]="false"> <!-- Desactivamos el loader nativo porque usaremos Skeletons -->
+    
+    <!-- HEADER CON FILTROS -->
+    <ng-template #header>
+      <div class="flex flex-column md:flex-row justify-content-between gap-3">
+        
+        <!-- Zona de Filtros -->
+        <div class="flex flex-column md:flex-row gap-2 flex-1">
+          <span class="p-input-icon-left w-full md:w-20rem">
+            <i class="pi pi-search"></i>
+            <input pInputText type="text" placeholder="Buscar por nombre o ID..."
+                   (input)="onSearchInput($event)" class="w-full" />
+          </span>
+          
+          <p-select [options]="categories" [(ngModel)]="selectedCategory"
+                      optionLabel="name" optionValue="id"
+                      placeholder="Todas las categorías" 
+                      [showClear]="true" (onChange)="applyFilters()"
+                      class="w-full md:w-15rem" styleClass="w-full">
+          </p-select>
+        </div>
+
+        <!-- Botones de Vistas -->
+        <div class="flex justify-content-end gap-2">
+          <p-button icon="pi pi-list" (onClick)="layout = 'list'" [rounded]="true" [text]="layout !== 'list'" [severity]="layout === 'list' ? 'primary' : 'secondary'"></p-button>
+          <p-button icon="pi pi-th-large" (onClick)="layout = 'grid'" [rounded]="true" [text]="layout !== 'grid'" [severity]="layout === 'grid' ? 'primary' : 'secondary'"></p-button>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- VISTA DE LISTA (TABLA) -->
+    <ng-template #list let-items>
+      <div class="grid grid-nogutter">
+        
+        @if (loading) {
+          <!-- SKELETONS PARA LISTA -->
+          @for (i of [1,2,3,4,5]; track i; let first = $first) {
+            <div class="col-12 p-4 flex gap-4" [ngClass]="{ 'border-top-1 surface-border': !first }">
+              <div class="flex-1 flex flex-column gap-2">
+                <p-skeleton width="20%" height="1rem"></p-skeleton>
+                <p-skeleton width="40%" height="1.5rem"></p-skeleton>
+                <p-skeleton width="60%" height="1rem"></p-skeleton>
+              </div>
+              <p-skeleton width="3rem" height="2rem"></p-skeleton>
+            </div>
+          }
+        } @else {
+          <!-- TUS PRODUCTOS REALES -->
+          @for (product of items; track product.id; let first = $first) {
+            <div class="col-12">
+              <div class="flex flex-column sm:flex-row sm:align-items-center p-4 gap-3" [ngClass]="{ 'border-top-1 surface-border': !first }">
+                <div class="flex flex-column md:flex-row justify-content-between md:align-items-center flex-1 gap-4">
+                  <div class="flex flex-row md:flex-column justify-content-between align-items-start gap-2">
+                    <div>
+                      <span class="font-medium text-secondary text-sm">{{ product.category?.name }}</span>
+                      <div class="text-lg font-bold text-900 mt-2">{{ product.name }}</div>
+                      <div class="text-sm text-600 mt-1">{{ product.details }}</div>
+                    </div>
+                  </div>
+                  <div class="flex flex-column md:align-items-end gap-5">
+                    <p-button icon="pi pi-pencil" [outlined]="true" size="small"></p-button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          } @empty {
+            <div class="col-12 p-5 text-center text-500 font-medium">No se encontraron productos con estos filtros.</div>
+          }
+        }
+      </div>
+    </ng-template>
+
+    <!-- VISTA DE CUADRÍCULA (TARJETAS) -->
+    <ng-template #grid let-items>
+      <div class="grid grid-nogutter">
+        
+        @if (loading) {
+          <!-- SKELETONS PARA GRID -->
+          @for (i of [1,2,3,4,5,6,7,8]; track i) {
+            <div class="col-12 sm:col-6 md:col-4 xl:col-3 p-2">
+              <div class="p-4 border-1 surface-border surface-card border-round h-full flex flex-column gap-3">
+                <p-skeleton width="30%" height="1rem"></p-skeleton>
+                <div class="flex flex-column align-items-center gap-2 py-4">
+                  <p-skeleton width="60%" height="1.5rem"></p-skeleton>
+                  <p-skeleton width="80%" height="1rem"></p-skeleton>
+                </div>
+                <div class="flex justify-content-end mt-auto pt-4 border-top-1 surface-border">
+                  <p-skeleton width="3rem" height="2rem"></p-skeleton>
+                </div>
+              </div>
+            </div>
+          }
+        } @else {
+          <!-- TUS PRODUCTOS REALES -->
+          @for (product of items; track product.id) {
+            <div class="col-12 sm:col-6 md:col-4 xl:col-3 p-2">
+              <div class="p-4 border-1 surface-border surface-card border-round h-full flex flex-column">
+                <div class="flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                  <span class="font-medium text-secondary text-sm">{{ product.category?.name }}</span>
+                </div>
+                <div class="flex flex-column flex-grow-1 align-items-center gap-3 py-4">
+                  <div class="text-xl font-bold text-900">{{ product.name }}</div>
+                  <div class="text-sm text-600 text-center">{{ product.details }}</div>
+                </div>
+                <div class="flex align-items-center justify-content-end mt-auto pt-4 border-top-1 surface-border">
+                  <p-button icon="pi pi-pencil" [outlined]="true" size="small"></p-button>
+                </div>
+              </div>
+            </div>
+          } @empty {
+            <div class="col-12 p-5 text-center text-500 font-medium">No se encontraron productos con estos filtros.</div>
+          }
+        }
+      </div>
+    </ng-template>
+
+  </p-dataView>
+</div>
