@@ -1,0 +1,158 @@
+<div class="card">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h2 class="text-2xl font-bold text-700 m-0">Historial de Lotes y Entradas</h2>
+    <!-- CONECTAMOS EL BOTÓN -->
+    <p-button label="Registrar Entrada" icon="pi pi-box" (onClick)="showCreateModal()"></p-button>
+  </div>
+
+  <div class="flex flex-column md:flex-row gap-3 mb-4">
+    
+    <!-- Búsqueda por texto -->
+    <span class="p-input-icon-left flex-1 md:flex-none w-full md:w-20rem">
+      <i class="pi pi-search"></i>
+      <input pInputText type="text" placeholder="Buscar en historial..." (input)="onSearchInput($event)" class="w-full" />
+    </span>
+
+    <!-- Filtro por Producto -->
+    <p-select 
+      [options]="products" 
+      [(ngModel)]="selectedProductId" 
+      optionLabel="name" 
+      optionValue="id"
+      placeholder="Todos los productos" 
+      [showClear]="true" 
+      [filter]="true" 
+      filterPlaceholder="Buscar..."
+      (onChange)="applyFilters()"
+      class="flex-1 md:flex-none w-full md:w-15rem" 
+      styleClass="w-full">
+    </p-select>
+
+    <!-- Filtro por Proveedor -->
+    <p-select 
+      [options]="suppliers" 
+      [(ngModel)]="selectedSupplierId" 
+      optionLabel="name" 
+      optionValue="id"
+      placeholder="Todos los proveedores" 
+      [showClear]="true" 
+      [filter]="true" 
+      filterPlaceholder="Buscar..."
+      (onChange)="applyFilters()"
+      class="flex-1 md:flex-none w-full md:w-15rem" 
+      styleClass="w-full">
+    </p-select>
+  </div>
+
+  <p-table [value]="entries" [lazy]="true" (onLazyLoad)="loadData($event)" [paginator]="true" [rows]="rows" [totalRecords]="totalRecords" [loading]="false" [rowHover]="true" styleClass="p-datatable-striped">
+    <ng-template #header>
+      <tr>
+        <th>ID</th>
+        <th>Fecha</th>
+        <th>Producto</th>
+        <th>Proveedor</th>
+        <th class="text-right">Stock Inicial</th>
+        <th class="text-right">Stock Actual</th>
+        <th class="text-right">Costo Unit.</th>
+        <th class="text-center">Comprobante</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-entry>
+      @if (loading) {
+        <!-- Tus skeletons se quedan igual... -->
+        <tr>
+          <td><p-skeleton width="2rem"></p-skeleton></td>
+          <td><p-skeleton width="6rem"></p-skeleton></td>
+          <td><p-skeleton width="10rem"></p-skeleton></td>
+          <td><p-skeleton width="8rem"></p-skeleton></td>
+          <td><p-skeleton width="3rem"></p-skeleton></td>
+          <td><p-skeleton width="3rem"></p-skeleton></td>
+          <td><p-skeleton width="4rem"></p-skeleton></td>
+          <td class="text-center"><p-skeleton shape="circle" size="2rem" styleClass="inline-block"></p-skeleton></td>
+        </tr>
+      } @else {
+        <tr>
+          <td class="font-bold text-500">#{{ entry.id }}</td>
+          <td>{{ entry.entryDate | date:'mediumDate' }}</td>
+          <td class="font-semibold text-800">{{ entry.product?.name }}</td>
+          <td>{{ entry.supplier?.name || 'N/A' }}</td>
+          <td class="text-right">{{ entry.initialStock }}</td>
+          <td class="text-right">
+            <!-- CORRECCIÓN DE WARN AQUÍ -->
+            <p-tag [severity]="entry.currentStock === 0 ? 'danger' : entry.currentStock < 10 ? 'warn' : 'success'" 
+                   [value]="entry.currentStock.toString()"></p-tag>
+          </td>
+          <td class="text-right font-medium text-green-600">{{ entry.purchasePrice | currency }}</td>
+          <td class="text-center">
+            @if (entry.receiptUrl) {
+              <!-- Abre el archivo en una nueva pestaña -->
+              <a [href]="entry.receiptUrl" target="_blank">
+                <p-button icon="pi pi-file-pdf" [text]="true" [rounded]="true" severity="secondary"></p-button>
+              </a>
+            } @else {
+              <span class="text-400 text-sm">-</span>
+            }
+          </td>
+        </tr>
+      }
+    </ng-template>
+
+    <ng-template #emptymessage>
+      @if (!loading) {
+        <tr><td colspan="8" class="text-center p-4 text-500">No se encontraron registros de entradas.</td></tr>
+      }
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- MODAL DE NUEVA ENTRADA -->
+<p-dialog header="Registrar Nueva Entrada de Stock" [(visible)]="displayModal" [modal]="true" [style]="{ width: '600px' }" [draggable]="false" [resizable]="false" (onHide)="hideModal()">
+  
+  <form [formGroup]="entryForm" (ngSubmit)="saveEntry()" class="flex flex-column gap-4 mt-3">
+    
+    <div class="grid">
+      <!-- Columna Izquierda -->
+      <div class="col-12 md:col-6 flex flex-column gap-4">
+        <div class="flex flex-column gap-2">
+          <label class="font-medium text-900">Producto <span class="text-red-500">*</span></label>
+          <p-select [options]="products" formControlName="productId" optionLabel="name" optionValue="id" placeholder="Selecciona un producto" styleClass="w-full" appendTo="body" [filter]="true" filterPlaceholder="Buscar producto..."></p-select>
+        </div>
+
+        <div class="flex flex-column gap-2">
+          <label class="font-medium text-900">Proveedor <span class="text-red-500">*</span></label>
+          <p-select [options]="suppliers" formControlName="supplierId" optionLabel="name" optionValue="id" placeholder="Selecciona un proveedor" styleClass="w-full" appendTo="body" [filter]="true" filterPlaceholder="Buscar proveedor..."></p-select>
+        </div>
+
+        <div class="flex flex-column gap-2">
+          <label class="font-medium text-900">Cantidad Entrante <span class="text-red-500">*</span></label>
+          <p-inputNumber formControlName="initialStock" [showButtons]="true" [min]="1" styleClass="w-full"></p-inputNumber>
+        </div>
+      </div>
+
+      <!-- Columna Derecha -->
+      <div class="col-12 md:col-6 flex flex-column gap-4">
+        <div class="flex flex-column gap-2">
+          <label class="font-medium text-900">Precio de Compra (Costo) <span class="text-red-500">*</span></label>
+          <p-inputNumber formControlName="purchasePrice" mode="currency" currency="USD" [min]="0" styleClass="w-full"></p-inputNumber>
+        </div>
+
+        <div class="flex flex-column gap-2">
+          <label class="font-medium text-900">Precio de Venta Sugerido <span class="text-red-500">*</span></label>
+          <p-inputNumber formControlName="salePrice" mode="currency" currency="USD" [min]="0" styleClass="w-full"></p-inputNumber>
+        </div>
+
+        <div class="flex flex-column gap-2">
+          <label class="font-medium text-900">Comprobante (Opcional)</label>
+          <!-- Input nativo de archivo integrado al diseño -->
+          <input type="file" (change)="onFileSelected($event)" accept=".pdf,image/*" class="p-inputtext p-component w-full p-2" />
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-content-end gap-2 mt-3 pt-3 border-top-1 surface-border">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="hideModal()"></p-button>
+      <p-button label="Registrar Stock" type="submit" [disabled]="entryForm.invalid" [loading]="saving"></p-button>
+    </div>
+  </form>
+</p-dialog>
