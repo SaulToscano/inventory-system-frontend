@@ -16,6 +16,18 @@ export const routes: Routes = [
         path: 'products',
         loadComponent: () => import('./features/inventory/product-list/product-list')
           .then(m => m.ProductList)
+      },
+      {
+        path: 'categories',
+        loadComponent: () => import('./features/inventory/category-list/category-list').then(m => m.CategoryList)
+      },
+      {
+        path: 'stock-entries',
+        loadComponent: () => import('./features/inventory/stock-entry-list/stock-entry-list').then(m => m.StockEntryList)
+      },
+      {
+        path: 'suppliers',
+        loadComponent: () => import('./features/inventory/supplier-list/supplier-list').then(m => m.SupplierList)
       }
     ]
   },

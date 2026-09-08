@@ -30,6 +30,12 @@ export class AuthService {
     return this.supabase.auth.signOut();
   }
 
+  async getSession() {
+    const { data } = await this.supabase.auth.getSession();
+    this.session.next(data.session);
+    return data.session;
+  }
+
   get currentSession(): Session | null {
     return this.session.value;
   }
