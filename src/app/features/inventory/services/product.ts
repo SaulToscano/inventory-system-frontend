@@ -30,13 +30,25 @@ export class ProductService {
       .set('size', size.toString());
 
     if (search) {
-      params = params.set('search', search); // Asegúrate de que tu Spring Boot acepte @RequestParam("search")
+      params = params.set('search', search);
     }
     if (categoryId) {
       params = params.set('categoryId', categoryId.toString());
     }
 
     return this.http.get<PaginatedResponse<Product>>(this.apiUrl, { params });
+  }
+
+  createProduct(productData: any): Observable<Product> {
+    return this.http.post<Product>(this.apiUrl, productData);
+  }
+
+  updateProduct(id: number, productData: any): Observable<Product> {
+    return this.http.put<Product>(`${this.apiUrl}/${id}`, productData);
+  }
+
+  deleteProduct(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
   getCategories(): Observable<Category[]> {

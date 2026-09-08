@@ -1,5 +1,8 @@
 <div class="card">
-  <h2 class="text-2xl font-bold mb-4 text-700">Catálogo de Productos</h2>
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h2 class="text-2xl font-bold text-700 m-0">Catálogo de Productos</h2>
+    <p-button label="Nuevo Producto" icon="pi pi-plus" (onClick)="showCreateModal()"></p-button>
+  </div>
 
   <p-dataView #dv 
     [value]="products" 
@@ -69,7 +72,11 @@
                     </div>
                   </div>
                   <div class="flex flex-column md:align-items-end gap-5">
-                    <p-button icon="pi pi-pencil" [outlined]="true" size="small"></p-button>
+                    <div class="flex flex-row-reverse md:flex-row gap-2">
+                      <p-button icon="pi pi-pencil" [outlined]="true" size="small" (onClick)="showEditModal(product)"></p-button>
+                      <p-button icon="pi pi-trash" [outlined]="true" severity="danger" size="small"
+                        (onClick)="confirmDelete(product)"></p-button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -113,8 +120,10 @@
                   <div class="text-xl font-bold text-900">{{ product.name }}</div>
                   <div class="text-sm text-600 text-center">{{ product.details }}</div>
                 </div>
-                <div class="flex align-items-center justify-content-end mt-auto pt-4 border-top-1 surface-border">
-                  <p-button icon="pi pi-pencil" [outlined]="true" size="small"></p-button>
+                <div class="flex align-items-center justify-content-end mt-auto pt-4 border-top-1 surface-border gap-2">
+                  <p-button icon="pi pi-pencil" [outlined]="true" size="small" (onClick)="showEditModal(product)"></p-button>
+                  <p-button icon="pi pi-trash" [outlined]="true" severity="danger" size="small"
+                    (onClick)="confirmDelete(product)"></p-button>
                 </div>
               </div>
             </div>
@@ -127,3 +136,40 @@
 
   </p-dataView>
 </div>
+
+<p-dialog 
+  [header]="isEditing ? 'Editar Producto' : 'Nuevo Producto'" 
+  [(visible)]="displayModal" 
+  [modal]="true" 
+  [style]="{ width: '450px' }" 
+  [draggable]="false" 
+  [resizable]="false"
+  (onHide)="hideModal()">
+  
+  <form [formGroup]="productForm" (ngSubmit)="saveProduct()" class="flex flex-column gap-4 mt-3">
+    
+    <div class="flex flex-column gap-2">
+      <label for="name" class="font-medium text-900">Nombre <span class="text-red-500">*</span></label>
+      <input id="name" type="text" pInputText formControlName="name" />
+    </div>
+
+    <div class="flex flex-column gap-2">
+      <label for="categoryId" class="font-medium text-900">Categoría <span class="text-red-500">*</span></label>
+      <!-- Reutilizamos las categorías que ya cargamos para el filtro -->
+      <p-select [options]="categories" formControlName="categoryId" optionLabel="name" optionValue="id" placeholder="Selecciona una categoría" styleClass="w-full" appendTo="body"></p-select>
+    </div>
+
+    <div class="flex flex-column gap-2">
+      <label for="details" class="font-medium text-900">Detalles</label>
+      <input id="details" type="text" pInputText formControlName="details" />
+    </div>
+
+    <div class="flex justify-content-end gap-2 mt-4">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="hideModal()"></p-button>
+      <p-button label="Guardar" type="submit" [disabled]="productForm.invalid" [loading]="saving"></p-button>
+    </div>
+  </form>
+</p-dialog>
+
+<!-- DIÁLOGO DE CONFIRMACIÓN -->
+<p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
