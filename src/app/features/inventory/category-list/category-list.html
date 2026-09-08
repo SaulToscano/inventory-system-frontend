@@ -1,0 +1,104 @@
+<div class="card">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h2 class="text-2xl font-bold text-700 m-0">Gestión de Categorías</h2>
+    <p-button label="Nueva Categoría" icon="pi pi-plus" (onClick)="showCreateModal()"></p-button>
+  </div>
+
+  <!-- Buscador Superior -->
+  <div class="flex mb-3">
+    <span class="p-input-icon-left w-full md:w-20rem">
+      <i class="pi pi-search"></i>
+      <input pInputText type="text" placeholder="Buscar categoría..." (input)="onSearchInput($event)" class="w-full" />
+    </span>
+  </div>
+
+  <!-- Tabla Lazy -->
+  <p-table 
+    [value]="categories" 
+    [lazy]="true" 
+    (onLazyLoad)="loadData($event)" 
+    [paginator]="true" 
+    [rows]="rows" 
+    [totalRecords]="totalRecords" 
+    [loading]="false" 
+    [rowHover]="true" 
+    class="p-datatable-striped">
+    
+    <ng-template #header>
+      <tr>
+        <th style="width: 10%">ID</th>
+        <th style="width: 30%">Nombre</th>
+        <th style="width: 45%">Descripción</th>
+        <th style="width: 15%" class="text-center">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-category>
+      <!-- Mostrar Skeletons si está cargando -->
+      @if (loading) {
+        <tr>
+          <td><p-skeleton width="2rem" height="1.5rem"></p-skeleton></td>
+          <td><p-skeleton width="10rem" height="1.5rem"></p-skeleton></td>
+          <td><p-skeleton width="15rem" height="1.5rem"></p-skeleton></td>
+          <td class="text-center">
+            <p-skeleton shape="circle" size="2.5rem" styleClass="inline-block"></p-skeleton>
+          </td>
+        </tr>
+      } @else {
+        <!-- Mostrar Datos Reales -->
+        <tr>
+          <td class="font-bold text-500">#{{ category.id }}</td>
+          <td class="font-semibold text-800">{{ category.name }}</td>
+          <td class="text-600">{{ category.description }}</td>
+          <td class="text-center">
+            <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="info" (onClick)="showEditModal(category)"></p-button>
+            <p-button icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (onClick)="confirmDelete(category)"></p-button>
+          </td>
+        </tr>
+      }
+    </ng-template>
+
+    <!-- Mensaje cuando no hay datos -->
+    <ng-template #emptymessage>
+      @if (!loading) {
+        <tr>
+          <td colspan="4" class="text-center p-4 text-500">
+            No se encontraron categorías.
+          </td>
+        </tr>
+      }
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog 
+  [header]="isEditing ? 'Editar Categoría' : 'Nueva Categoría'" 
+  [(visible)]="displayModal" 
+  [modal]="true" 
+  [style]="{ width: '400px' }" 
+  [draggable]="false" 
+  [resizable]="false"
+  (onHide)="hideModal()">
+  
+  <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()" class="flex flex-column gap-4 mt-3">
+    
+    <div class="flex flex-column gap-2">
+      <label for="name" class="font-medium text-900">Nombre <span class="text-red-500">*</span></label>
+      <input id="name" type="text" pInputText formControlName="name" placeholder="Ej. Electrónica" />
+      @if (categoryForm.get('name')?.invalid && categoryForm.get('name')?.touched) {
+        <small class="text-red-500">El nombre es obligatorio.</small>
+      }
+    </div>
+
+    <div class="flex flex-column gap-2">
+      <label for="description" class="font-medium text-900">Descripción</label>
+      <input id="description" type="text" pInputText formControlName="description" placeholder="Ej. Gadgets y tecnología" />
+    </div>
+
+    <div class="flex justify-content-end gap-2 mt-4">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="hideModal()"></p-button>
+      <p-button label="Guardar" type="submit" [disabled]="categoryForm.invalid" [loading]="saving"></p-button>
+    </div>
+  </form>
+</p-dialog>
+<p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
