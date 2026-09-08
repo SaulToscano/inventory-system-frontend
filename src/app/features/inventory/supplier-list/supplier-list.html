@@ -1,0 +1,75 @@
+<div class="card">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h2 class="text-2xl font-bold text-700 m-0">Catálogo de Proveedores</h2>
+    <p-button label="Nuevo Proveedor" icon="pi pi-plus" (onClick)="showCreateModal()"></p-button>
+  </div>
+
+  <div class="flex mb-3">
+    <span class="p-input-icon-left w-full md:w-20rem">
+      <i class="pi pi-search"></i>
+      <input pInputText type="text" placeholder="Buscar proveedor..." (input)="onSearchInput($event)" class="w-full" />
+    </span>
+  </div>
+
+  <p-table [value]="suppliers" [lazy]="true" (onLazyLoad)="loadData($event)" [paginator]="true" [rows]="rows" [totalRecords]="totalRecords" [loading]="false" [rowHover]="true" styleClass="p-datatable-striped">
+    <ng-template #header>
+      <tr>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Teléfono</th>
+        <th class="text-center">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-supplier>
+      @if (loading) {
+        <tr>
+          <td><p-skeleton width="10rem"></p-skeleton></td>
+          <td><p-skeleton width="12rem"></p-skeleton></td>
+          <td><p-skeleton width="8rem"></p-skeleton></td>
+          <td class="text-center"><p-skeleton shape="circle" size="2.5rem" styleClass="inline-block"></p-skeleton></td>
+        </tr>
+      } @else {
+        <tr>
+          <td class="font-semibold text-800">{{ supplier.name }}</td>
+          <td>{{ supplier.email || '-' }}</td>
+          <td>{{ supplier.phone || '-' }}</td>
+          <td class="text-center">
+            <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="info" (onClick)="showEditModal(supplier)"></p-button>
+            <p-button icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (onClick)="confirmDelete(supplier)"></p-button>
+          </td>
+        </tr>
+      }
+    </ng-template>
+    <ng-template #emptymessage>
+      @if (!loading) {
+        <tr><td colspan="4" class="text-center p-4 text-500">No se encontraron proveedores.</td></tr>
+      }
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog [header]="isEditing ? 'Editar Proveedor' : 'Nuevo Proveedor'" [(visible)]="displayModal" [modal]="true" [style]="{ width: '450px' }" [draggable]="false" [resizable]="false" (onHide)="hideModal()">
+  <form [formGroup]="supplierForm" (ngSubmit)="saveSupplier()" class="flex flex-column gap-4 mt-3">
+    <div class="flex flex-column gap-2">
+      <label class="font-medium text-900">Nombre <span class="text-red-500">*</span></label>
+      <input type="text" pInputText formControlName="name" />
+    </div>
+    <div class="flex flex-column gap-2">
+      <label class="font-medium text-900">Email</label>
+      <input type="email" pInputText formControlName="email" />
+    </div>
+    <div class="flex flex-column gap-2">
+      <label class="font-medium text-900">Teléfono</label>
+      <input type="text" pInputText formControlName="phone" />
+    </div>
+    <div class="flex flex-column gap-2">
+      <label class="font-medium text-900">Dirección</label>
+      <input type="text" pInputText formControlName="address" />
+    </div>
+    <div class="flex justify-content-end gap-2 mt-4">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="hideModal()"></p-button>
+      <p-button label="Guardar" type="submit" [disabled]="supplierForm.invalid" [loading]="saving"></p-button>
+    </div>
+  </form>
+</p-dialog>
+<p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
