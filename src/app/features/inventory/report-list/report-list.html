@@ -1,0 +1,189 @@
+<div class="card mb-4">
+  <div class="flex flex-column md:flex-row justify-content-between align-items-start md:align-items-center mb-4 gap-3">
+    <h2 class="text-2xl font-bold text-700 m-0">Centro de Reportes</h2>
+    <div class="flex gap-2">
+      <p-button label="Previsualizar Datos" icon="pi pi-table" (onClick)="previewData()" [loading]="loadingData"></p-button>
+      <p-button label="Exportar PDF" icon="pi pi-file-pdf" severity="danger" (onClick)="downloadPdf()" [loading]="downloadingPdf" [disabled]="reportData.length === 0"></p-button>
+    </div>
+  </div>
+
+  <!-- PANEL DE FILTROS -->
+  <div class="p-4 border-1 surface-border border-round surface-50 grid p-fluid">
+    
+    <div class="col-12 md:col-4 lg:col-3">
+      <label class="font-medium text-900 block mb-2">Tipo de Reporte</label>
+      <p-select [options]="reportTypes" [(ngModel)]="selectedReportType" optionLabel="label" optionValue="value" (onChange)="reportData = []" styleClass="w-full"></p-select>
+    </div>
+
+    <div class="col-12 md:col-4 lg:col-3">
+      <label class="font-medium text-900 block mb-2">Rango de Fechas</label>
+      <p-datePicker [(ngModel)]="dateRange" selectionMode="range" [readonlyInput]="true" placeholder="Inicio - Fin" [showIcon]="true"></p-datePicker>
+    </div>
+
+    @if (showFilter('customer')) {
+      <div class="col-12 md:col-4 lg:col-3">
+        <label class="font-medium text-900 block mb-2">Cliente</label>
+        <p-select [options]="customers" [(ngModel)]="selectedCustomerId" optionLabel="name" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true"></p-select>
+      </div>
+    }
+
+    @if (showFilter('category')) {
+      <div class="col-12 md:col-4 lg:col-3">
+        <label class="font-medium text-900 block mb-2">Categoría</label>
+        <p-select [options]="categories" [(ngModel)]="selectedCategoryId" optionLabel="name" optionValue="id" placeholder="Todas" [showClear]="true" [filter]="true"></p-select>
+      </div>
+    }
+
+    @if (showFilter('product')) {
+      <div class="col-12 md:col-4 lg:col-3">
+        <label class="font-medium text-900 block mb-2">Producto</label>
+        <p-select [options]="products" [(ngModel)]="selectedProductId" optionLabel="name" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true"></p-select>
+      </div>
+    }
+
+    @if (showFilter('supplier')) {
+      <div class="col-12 md:col-4 lg:col-3">
+        <label class="font-medium text-900 block mb-2">Proveedor</label>
+        <p-select [options]="suppliers" [(ngModel)]="selectedSupplierId" optionLabel="name" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true"></p-select>
+      </div>
+    }
+
+  </div>
+</div>
+
+<!-- PANEL DE PREVISUALIZACIÓN DE DATOS -->
+@if (reportData.length > 0) {
+  <div class="card">
+    <h3 class="text-xl font-bold text-700 mb-3">Resultados ({{ reportData.length }} registros)</h3>
+    
+    <p-table [value]="reportData" [rowHover]="true" styleClass="p-datatable-striped p-datatable-sm">
+      
+      @switch (selectedReportType) {
+        
+        <!-- 1. VENTAS -->
+        @case ('sells') {
+          <ng-template #header>
+            <tr>
+              <th>Factura</th><th>Fecha</th><th>Cliente</th><th>Producto</th><th class="text-center">Cant.</th><th class="text-right">Precio Unit.</th><th class="text-right">Subtotal</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-item>
+            <tr>
+              <td class="font-bold">{{ item.invoiceNumber }}</td>
+              <td>{{ item.date | date:'shortDate' }}</td>
+              <td>{{ item.customerName }}</td>
+              <td>{{ item.productName }}</td>
+              <td class="text-center">{{ item.quantity }}</td>
+              <td class="text-right">{{ item.unitPrice | currency }}</td>
+              <td class="text-right font-bold text-primary">{{ item.subTotal | currency }}</td>
+            </tr>
+          </ng-template>
+          <ng-template #footer>
+            <tr>
+              <td colspan="6" class="text-right font-bold">Total Vendido:</td>
+              <td class="text-right font-bold text-xl">{{ calculateTotal('subTotal') | currency }}</td>
+            </tr>
+          </ng-template>
+        }
+
+        <!-- 2. GANANCIAS (PROFIT) -->
+        @case ('profit') {
+          <ng-template #header>
+            <tr>
+              <th>Factura</th><th>Fecha</th><th>Producto</th><th class="text-center">Cant.</th><th class="text-right">Ingreso Venta</th><th class="text-right">Costo Real</th><th class="text-right">Ganancia Neta</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-item>
+            <tr>
+              <td class="font-bold">{{ item.invoiceNumber }}</td>
+              <td>{{ item.date | date:'shortDate' }}</td>
+              <td>{{ item.productName }}</td>
+              <td class="text-center">{{ item.quantity }}</td>
+              <td class="text-right">{{ item.revenue | currency }}</td>
+              <td class="text-right text-red-500">{{ item.cost | currency }}</td>
+              <td class="text-right font-bold text-green-600">{{ item.profit | currency }}</td>
+            </tr>
+          </ng-template>
+          <ng-template #footer>
+            <tr>
+              <td colspan="6" class="text-right font-bold">Ganancia Total:</td>
+              <td class="text-right font-bold text-green-600 text-xl">{{ calculateTotal('profit') | currency }}</td>
+            </tr>
+          </ng-template>
+        }
+
+        <!-- 3. CUENTAS POR COBRAR (DUE) -->
+        @case ('due') {
+          <ng-template #header>
+            <tr>
+              <th>Factura</th><th>Cliente</th><th>Fecha de Emisión</th><th class="text-right">Total Factura</th><th class="text-right">Saldo Pendiente</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-item>
+            <tr>
+              <td class="font-bold">{{ item.invoiceNumber }}</td>
+              <td class="font-semibold">{{ item.customerName }}</td>
+              <td>{{ item.issueDate | date:'mediumDate' }}</td>
+              <td class="text-right">{{ item.totalAmount | currency }}</td>
+              <td class="text-right font-bold text-orange-500">{{ item.balanceDue | currency }}</td>
+            </tr>
+          </ng-template>
+          <ng-template #footer>
+            <tr>
+              <td colspan="4" class="text-right font-bold">Deuda Global Pendiente:</td>
+              <td class="text-right font-bold text-orange-500 text-xl">{{ calculateTotal('balanceDue') | currency }}</td>
+            </tr>
+          </ng-template>
+        }
+
+        <!-- 4. RESUMEN DE FACTURAS -->
+        @case ('invoices') {
+          <ng-template #header>
+            <tr>
+              <th>Factura</th><th>Fecha</th><th>Cliente</th><th class="text-right">Subtotal</th><th class="text-right">Desc.</th><th class="text-right">Neto</th><th class="text-right">Pendiente</th><th>Estado</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-item>
+            <tr>
+              <td class="font-bold">{{ item.invoiceNumber }}</td>
+              <td>{{ item.issueDate | date:'shortDate' }}</td>
+              <td>{{ item.customerName }}</td>
+              <td class="text-right">{{ item.totalGross | currency }}</td>
+              <td class="text-right text-red-400">-{{ item.totalDiscount | currency }}</td>
+              <td class="text-right font-bold">{{ item.netAmount | currency }}</td>
+              <td class="text-right text-orange-500">{{ item.balanceDue | currency }}</td>
+              <td>{{ item.status }}</td>
+            </tr>
+          </ng-template>
+          <ng-template #footer>
+            <tr>
+              <td colspan="5" class="text-right font-bold">Total Neto Facturado:</td>
+              <td class="text-right font-bold text-primary text-xl">{{ calculateTotal('netAmount') | currency }}</td>
+              <td colspan="2"></td>
+            </tr>
+          </ng-template>
+        }
+
+        <!-- 5. STOCK LOTES -->
+        @case ('stock') {
+          <ng-template #header>
+            <tr>
+              <th>Lote ID</th><th>Fecha Entrada</th><th>Producto</th><th>Proveedor</th><th class="text-center">Cant. Inicial</th><th class="text-center">Cant. Actual</th><th class="text-right">Costo Lote</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-item>
+            <tr>
+              <td class="font-bold">#{{ item.stockEntryId }}</td>
+              <td>{{ item.entryDate | date:'shortDate' }}</td>
+              <td class="font-semibold">{{ item.productName }} <span class="text-xs text-500 block">{{ item.categoryName }}</span></td>
+              <td>{{ item.supplierName }}</td>
+              <td class="text-center">{{ item.initialStock }}</td>
+              <td class="text-center font-bold" [ngClass]="{'text-red-500': item.currentStock === 0}">{{ item.currentStock }}</td>
+              <td class="text-right">{{ item.purchasePrice | currency }}</td>
+            </tr>
+          </ng-template>
+        }
+      }
+    </p-table>
+  </div>
+}
