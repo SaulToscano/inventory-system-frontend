@@ -1,0 +1,165 @@
+<div class="card">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h2 class="text-2xl font-bold text-700 m-0">Generar Nueva Factura</h2>
+    <p-button label="Cancelar" severity="secondary" [outlined]="true" routerLink="/invoices"></p-button>
+  </div>
+
+  <form [formGroup]="invoiceForm" (ngSubmit)="generateInvoice()">
+    
+    <!-- ENCABEZADO -->
+    <div class="grid p-fluid formgrid border-bottom-1 surface-border pb-4 mb-4">
+      <div class="col-12 md:col-4">
+        <label class="font-medium text-900">Cliente <span class="text-red-500">*</span></label>
+        <p-select [options]="customers" formControlName="customerId" optionLabel="name" optionValue="id" placeholder="Selecciona un cliente" [filter]="true"></p-select>
+      </div>
+      <div class="col-12 md:col-4">
+        <label class="font-medium text-900">Fecha de Factura <span class="text-red-500">*</span></label>
+        <p-datePicker formControlName="issueDate" [showIcon]="true"></p-datePicker>
+      </div>
+      <div class="col-12 md:col-4">
+        <label class="font-medium text-900">No. Factura</label>
+        <input pInputText value="Generado automáticamente" [disabled]="true" class="w-full" />
+      </div>
+    </div>
+
+    <!-- TABLA DE PRODUCTOS (FORM ARRAY) -->
+    <div class="mb-4">
+      <div class="flex justify-content-between align-items-center mb-3">
+        <h3 class="text-xl font-bold text-700 m-0">Productos</h3>
+        <p-button label="Agregar Fila" icon="pi pi-plus" size="small" (onClick)="addItem()"></p-button>
+      </div>
+
+      <div formArrayName="items" class="flex flex-column gap-3">
+        @for (item of itemsFormArray.controls; track $index) {
+          <div [formGroupName]="$index" class="p-3 border-1 surface-border border-round flex flex-wrap gap-3 align-items-end surface-50">
+            
+            <div class="flex-1 min-w-15rem">
+              <label class="text-sm font-medium">Categoría</label>
+              <p-select [options]="categories" formControlName="categoryId" optionLabel="name" optionValue="id" placeholder="Categoría" styleClass="w-full"></p-select>
+            </div>
+
+            <div class="flex-1 min-w-15rem">
+              <label class="text-sm font-medium">Producto</label>
+              <p-select [options]="productsByRow[$index]" formControlName="productId" optionLabel="name" optionValue="id" placeholder="Producto" styleClass="w-full"></p-select>
+            </div>
+
+            <div class="flex-1 min-w-15rem">
+              <label class="text-sm font-medium">Lote (Stock Disp.)</label>
+              <p-select [options]="lotsByRow[$index]" formControlName="stockEntryId" optionLabel="id" optionValue="id" placeholder="Lote" styleClass="w-full">
+                <ng-template let-lote pTemplate="item">
+                  Lote #{{lote.id}} - Stock: <span class="font-bold text-primary">{{lote.currentStock}}</span>
+                </ng-template>
+                <ng-template let-lote pTemplate="selectedItem">
+                  Lote #{{lote.id}} (Disp: {{lote.currentStock}})
+                </ng-template>
+              </p-select>
+            </div>
+
+            <div class="w-8rem">
+              <label class="text-sm font-medium">Cantidad</label>
+              <p-inputNumber formControlName="quantity" [showButtons]="true" [min]="1" styleClass="w-full"></p-inputNumber>
+            </div>
+
+            <div class="w-10rem">
+              <label class="text-sm font-medium">Precio Unit.</label>
+              <p-inputNumber formControlName="unitPrice" mode="currency" currency="USD" styleClass="w-full"></p-inputNumber>
+            </div>
+
+            <div class="w-15rem flex gap-2">
+              <div class="flex-1">
+                <label class="text-sm font-medium">Descuento</label>
+                <p-inputNumber formControlName="discount" styleClass="w-full"></p-inputNumber>
+              </div>
+              <div class="w-5rem">
+                <label class="text-sm font-medium">Tipo</label>
+                <!-- Simplificamos con un dropdown básico o botones -->
+                <select formControlName="discountType" class="p-inputtext p-component w-full p-2 h-full">
+                  <option value="FIXED_AMOUNT">$</option>
+                  <option value="PERCENTAGE">%</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="w-10rem text-right">
+              <label class="text-sm font-medium block">Total Fila</label>
+              <span class="text-xl font-bold text-primary">{{ item.get('subTotal')?.value | currency }}</span>
+            </div>
+
+            <div>
+              <p-button icon="pi pi-trash" severity="danger" [outlined]="true" (onClick)="confirmRemoveItem($index)"></p-button>
+            </div>
+
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- PANEL INFERIOR: PAGO Y TOTALES -->
+    <div class="grid mt-5 border-top-1 surface-border pt-4">
+      
+      <!-- Zona de Pagos -->
+      <div class="col-12 md:col-6">
+        <div class="flex align-items-center gap-2 mb-3">
+          <input type="checkbox" formControlName="makePayment" id="makePayment" class="p-checkbox p-component" />
+          <label for="makePayment" class="font-bold text-900">Registrar pago inicial ahora</label>
+        </div>
+
+        @if (invoiceForm.get('makePayment')?.value) {
+          <div class="p-4 border-1 surface-border border-round surface-50">
+            <div class="flex gap-3 mb-3">
+              <div class="flex-1">
+                <label class="font-medium text-900 block mb-2">Método de Pago</label>
+                <select formControlName="paymentMethod" class="p-inputtext p-component w-full p-2">
+                  <option value="CASH">Efectivo</option>
+                  <option value="BANK_TRANSFER">Transferencia Bancaria</option>
+                </select>
+              </div>
+              <div class="flex-1">
+                <label class="font-medium text-900 block mb-2">Monto a Pagar</label>
+                <p-inputNumber formControlName="paymentAmount" mode="currency" currency="USD" styleClass="w-full"></p-inputNumber>
+              </div>
+            </div>
+            
+            @if (invoiceForm.get('paymentMethod')?.value === 'BANK_TRANSFER') {
+              <div>
+                <label class="font-medium text-900 block mb-2">Referencia / ID Transacción</label>
+                <input pInputText type="text" formControlName="bankReference" class="w-full" />
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Zona de Totales -->
+      <div class="col-12 md:col-6 flex flex-column align-items-end text-right">
+        <div class="w-full md:w-20rem">
+          <div class="flex justify-content-between mb-2 text-600">
+            <span>Subtotal:</span>
+            <span>{{ totalGross | currency }}</span>
+          </div>
+          <div class="flex justify-content-between mb-3 text-red-500">
+            <span>Descuentos:</span>
+            <span>- {{ totalDiscount | currency }}</span>
+          </div>
+          <div class="flex justify-content-between mb-3 text-2xl font-bold text-900 border-top-1 surface-border pt-2">
+            <span>Total a Pagar:</span>
+            <span>{{ netAmount | currency }}</span>
+          </div>
+
+          @if (invoiceForm.get('makePayment')?.value) {
+            <div class="flex justify-content-between text-lg font-bold text-orange-500">
+              <span>Saldo Pendiente:</span>
+              <span>{{ remainingBalance | currency }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="mt-4">
+          <p-button label="Generar Factura Definitiva" icon="pi pi-check" type="submit" size="large" [loading]="saving"></p-button>
+        </div>
+      </div>
+
+    </div>
+  </form>
+</div>
+<p-confirmDialog></p-confirmDialog>

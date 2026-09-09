@@ -1,0 +1,129 @@
+<div class="card">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h2 class="text-2xl font-bold text-700 m-0">Facturación y Ventas</h2>
+    <p-button label="Nueva Factura" icon="pi pi-plus" routerLink="/invoices/new"></p-button>
+  </div>
+
+  <!-- BARRA DE FILTROS -->
+  <div class="flex flex-column md:flex-row gap-3 mb-4">
+    
+    <!-- Buscar por folio -->
+    <span class="p-input-icon-left flex-1 md:flex-none w-full md:w-20rem">
+      <i class="pi pi-search"></i>
+      <input pInputText type="text" placeholder="Buscar por folio..." (input)="onSearchInput($event)" class="w-full" />
+    </span>
+
+    <!-- Filtro Cliente -->
+    <p-select 
+      [options]="customers" [(ngModel)]="selectedCustomerId" 
+      optionLabel="name" optionValue="id"
+      placeholder="Todos los clientes" [showClear]="true" [filter]="true" 
+      (onChange)="applyFilters()" class="flex-1 md:flex-none w-full md:w-15rem" styleClass="w-full">
+    </p-select>
+
+    <!-- Filtro Producto -->
+    <p-select 
+      [options]="products" [(ngModel)]="selectedProductId" 
+      optionLabel="name" optionValue="id"
+      placeholder="Todos los productos" [showClear]="true" [filter]="true" 
+      (onChange)="applyFilters()" class="flex-1 md:flex-none w-full md:w-15rem" styleClass="w-full">
+    </p-select>
+  </div>
+
+  <!-- TABLA DE FACTURAS -->
+  <p-table [value]="invoices" [lazy]="true" (onLazyLoad)="loadData($event)" [paginator]="true" [rows]="rows" [totalRecords]="totalRecords" [loading]="false" [rowHover]="true" styleClass="p-datatable-striped">
+    <ng-template #header>
+      <tr>
+        <th>Folio</th>
+        <th>Fecha</th>
+        <th>Cliente</th>
+        <th class="text-right">Total Neto</th>
+        <th class="text-right">Saldo Pend.</th>
+        <th class="text-center">Estado</th>
+        <th class="text-center">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-invoice>
+      @if (loading) {
+        <tr>
+          <td><p-skeleton width="6rem"></p-skeleton></td>
+          <td><p-skeleton width="6rem"></p-skeleton></td>
+          <td><p-skeleton width="10rem"></p-skeleton></td>
+          <td><p-skeleton width="5rem"></p-skeleton></td>
+          <td><p-skeleton width="5rem"></p-skeleton></td>
+          <td class="text-center"><p-skeleton width="4rem"></p-skeleton></td>
+          <td class="text-center"><p-skeleton shape="circle" size="2rem" styleClass="inline-block"></p-skeleton></td>
+        </tr>
+      } @else {
+        <tr>
+          <td class="font-bold text-600">{{ invoice.invoiceNumber }}</td>
+          <td>{{ invoice.issueDate | date:'mediumDate' }}</td>
+          <td class="font-semibold text-800">{{ invoice.customer?.name }}</td>
+          <td class="text-right font-medium">{{ invoice.netAmount | currency }}</td>
+          <td class="text-right font-bold text-orange-500">{{ invoice.balanceDue | currency }}</td>
+          <td class="text-center">
+            <p-tag [severity]="getSeverity(invoice.status)" [value]="translateStatus(invoice.status)"></p-tag>
+          </td>
+          <td class="text-center">
+            <!-- Descargar PDF -->
+            <p-button icon="pi pi-file-pdf" [text]="true" [rounded]="true" severity="secondary" pTooltip="Descargar PDF" (onClick)="downloadPdf(invoice.id)"></p-button>
+            
+            <!-- Registrar Pago (Deshabilitado si ya está pagado) -->
+            <p-button icon="pi pi-dollar" [text]="true" [rounded]="true" severity="success" pTooltip="Registrar Abono" [disabled]="invoice.status === 'PAID'" (onClick)="showPaymentModal(invoice)"></p-button>
+          </td>
+        </tr>
+      }
+    </ng-template>
+
+    <ng-template #emptymessage>
+      @if (!loading) {
+        <tr><td colspan="7" class="text-center p-4 text-500">No se encontraron facturas.</td></tr>
+      }
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- MODAL DE PAGO -->
+<p-dialog header="Registrar Abono" [(visible)]="displayPaymentModal" [modal]="true" [style]="{ width: '400px' }" [draggable]="false" [resizable]="false" (onHide)="hidePaymentModal()">
+  @if (selectedInvoice) {
+    <div class="mb-4 p-3 border-round bg-blue-50 text-blue-900 border-1 border-blue-200">
+      <div class="font-bold mb-1">Folio: {{ selectedInvoice.invoiceNumber }}</div>
+      <div class="text-sm mb-2">Cliente: {{ selectedInvoice.customer?.name }}</div>
+      <div class="flex justify-content-between font-bold text-lg border-top-1 border-blue-200 pt-2 mt-2">
+        <span>Saldo Pendiente:</span>
+        <span class="text-orange-600">{{ selectedInvoice.balanceDue | currency }}</span>
+      </div>
+    </div>
+  }
+
+  <form [formGroup]="paymentForm" (ngSubmit)="savePayment()" class="flex flex-column gap-4">
+    <div class="flex flex-column gap-2">
+      <label class="font-medium text-900">Monto del Abono <span class="text-red-500">*</span></label>
+      <p-inputNumber formControlName="amount" mode="currency" currency="USD" [min]="0.01" styleClass="w-full"></p-inputNumber>
+      @if (paymentForm.get('amount')?.errors?.['max']) {
+        <small class="text-red-500">El abono no puede superar el saldo pendiente.</small>
+      }
+    </div>
+
+    <div class="flex flex-column gap-2">
+      <label class="font-medium text-900">Método de Pago <span class="text-red-500">*</span></label>
+      <select formControlName="method" class="p-inputtext p-component w-full p-2">
+        <option value="CASH">Efectivo</option>
+        <option value="BANK_TRANSFER">Transferencia Bancaria</option>
+      </select>
+    </div>
+
+    @if (paymentForm.get('method')?.value === 'BANK_TRANSFER') {
+      <div class="flex flex-column gap-2">
+        <label class="font-medium text-900">Referencia Bancaria</label>
+        <input pInputText type="text" formControlName="bankReference" placeholder="ID de transacción..." class="w-full" />
+      </div>
+    }
+
+    <div class="flex justify-content-end gap-2 mt-4">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="hidePaymentModal()"></p-button>
+      <p-button label="Registrar Pago" type="submit" [disabled]="paymentForm.invalid" [loading]="savingPayment"></p-button>
+    </div>
+  </form>
+</p-dialog>
