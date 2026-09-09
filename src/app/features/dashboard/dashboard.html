@@ -1,0 +1,119 @@
+<div class="grid">
+  <!-- TARJETAS DE MÉTRICAS (KPIs) -->
+  <div class="col-12 md:col-6 lg:col-3">
+    <div class="surface-card shadow-2 p-3 border-round border-left-3 border-blue-500 h-full flex flex-column justify-content-between">
+      <div class="flex justify-content-between mb-3">
+        <div>
+          <span class="block text-500 font-medium mb-3">Ingresos (Mes Actual)</span>
+          <div class="text-900 font-bold text-2xl">
+            @if (loading) { <p-skeleton width="5rem" height="2rem"></p-skeleton> }
+            @else { {{ monthlyRevenue | currency }} }
+          </div>
+        </div>
+        <div class="flex align-items-center justify-content-center bg-blue-100 border-round" style="width:2.5rem;height:2.5rem">
+          <i class="pi pi-wallet text-blue-500 text-xl"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 md:col-6 lg:col-3">
+    <div class="surface-card shadow-2 p-3 border-round border-left-3 border-green-500 h-full flex flex-column justify-content-between">
+      <div class="flex justify-content-between mb-3">
+        <div>
+          <span class="block text-500 font-medium mb-3">Ganancia Neta (Mes)</span>
+          <div class="text-900 font-bold text-2xl text-green-600">
+            @if (loading) { <p-skeleton width="5rem" height="2rem"></p-skeleton> }
+            @else { {{ monthlyProfit | currency }} }
+          </div>
+        </div>
+        <div class="flex align-items-center justify-content-center bg-green-100 border-round" style="width:2.5rem;height:2.5rem">
+          <i class="pi pi-chart-line text-green-500 text-xl"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 md:col-6 lg:col-3">
+    <div class="surface-card shadow-2 p-3 border-round border-left-3 border-orange-500 h-full flex flex-column justify-content-between">
+      <div class="flex justify-content-between mb-3">
+        <div>
+          <span class="block text-500 font-medium mb-3">Cuentas por Cobrar</span>
+          <div class="text-900 font-bold text-2xl text-orange-500">
+            @if (loading) { <p-skeleton width="5rem" height="2rem"></p-skeleton> }
+            @else { {{ totalDebt | currency }} }
+          </div>
+        </div>
+        <div class="flex align-items-center justify-content-center bg-orange-100 border-round" style="width:2.5rem;height:2.5rem">
+          <i class="pi pi-clock text-orange-500 text-xl"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 md:col-6 lg:col-3">
+    <div class="surface-card shadow-2 p-3 border-round border-left-3 border-red-500 h-full flex flex-column justify-content-between">
+      <div class="flex justify-content-between mb-3">
+        <div>
+          <span class="block text-500 font-medium mb-3">Alertas de Stock</span>
+          <div class="text-900 font-bold text-2xl text-red-500">
+            @if (loading) { <p-skeleton width="2rem" height="2rem"></p-skeleton> }
+            @else { {{ lowStockCount }} Lotes }
+          </div>
+        </div>
+        <div class="flex align-items-center justify-content-center bg-red-100 border-round" style="width:2.5rem;height:2.5rem">
+          <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN INFERIOR: GRÁFICO Y TABLA -->
+  <div class="col-12 xl:col-6 mt-4">
+    <div class="surface-card shadow-2 p-4 border-round h-full">
+      <div class="flex justify-content-between align-items-center mb-4">
+        <h5 class="text-xl font-bold m-0">Rendimiento Financiero</h5>
+        <p-button icon="pi pi-refresh" [text]="true" [rounded]="true" (onClick)="loadDashboardData()"></p-button>
+      </div>
+      
+      @if (loading) {
+        <p-skeleton width="100%" height="300px"></p-skeleton>
+      } @else {
+        <p-chart type="bar" [data]="chartData" [options]="chartOptions" height="300px"></p-chart>
+      }
+    </div>
+  </div>
+
+  <div class="col-12 xl:col-6 mt-4">
+    <div class="surface-card shadow-2 p-4 border-round h-full">
+      <div class="flex justify-content-between align-items-center mb-4">
+        <h5 class="text-xl font-bold m-0">Últimas Ventas</h5>
+        <p-button label="Ver Todas" [text]="true" size="small" routerLink="/invoices"></p-button>
+      </div>
+      
+      <p-table [value]="recentInvoices" [rows]="5" styleClass="p-datatable-sm" [rowHover]="true">
+        <ng-template #header>
+          <tr>
+            <th>Folio</th>
+            <th>Cliente</th>
+            <th class="text-right">Monto</th>
+            <th class="text-center">Estado</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-inv>
+          <tr>
+            <td class="font-bold">{{ inv.invoiceNumber }}</td>
+            <td>{{ inv.customer?.name }}</td>
+            <td class="text-right font-medium">{{ inv.netAmount | currency }}</td>
+            <td class="text-center">
+              <p-tag [severity]="getSeverity(inv.status)" [value]="inv.status"></p-tag>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr><td colspan="4" class="text-center p-3 text-500">No hay ventas registradas recientes.</td></tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
