@@ -1,0 +1,87 @@
+<div class="card">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h2 class="text-2xl font-bold text-700 m-0">Catálogo de Clientes</h2>
+    <p-button label="Nuevo Cliente" icon="pi pi-user-plus" (onClick)="showCreateModal()"></p-button>
+  </div>
+
+  <div class="flex mb-3">
+    <span class="p-input-icon-left w-full md:w-20rem">
+      <i class="pi pi-search"></i>
+      <input pInputText type="text" placeholder="Buscar cliente..." (input)="onSearchInput($event)" class="w-full" />
+    </span>
+  </div>
+
+  <p-table [value]="customers" [lazy]="true" (onLazyLoad)="loadData($event)" [paginator]="true" [rows]="rows" [totalRecords]="totalRecords" [loading]="false" [rowHover]="true" styleClass="p-datatable-striped">
+    <ng-template #header>
+      <tr>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Teléfono</th>
+        <th>Dirección</th>
+        <th class="text-center">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-customer>
+      @if (loading) {
+        <tr>
+          <td><p-skeleton width="10rem"></p-skeleton></td>
+          <td><p-skeleton width="12rem"></p-skeleton></td>
+          <td><p-skeleton width="8rem"></p-skeleton></td>
+          <td><p-skeleton width="10rem"></p-skeleton></td>
+          <td class="text-center"><p-skeleton shape="circle" size="2.5rem" styleClass="inline-block"></p-skeleton></td>
+        </tr>
+      } @else {
+        <tr>
+          <td class="font-semibold text-800">{{ customer.name }}</td>
+          <td>{{ customer.email }}</td>
+          <td>{{ customer.phone || '-' }}</td>
+          <td>{{ customer.address || '-' }}</td>
+          <td class="text-center">
+            <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="info" (onClick)="showEditModal(customer)"></p-button>
+            <p-button icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (onClick)="confirmDelete(customer)"></p-button>
+          </td>
+        </tr>
+      }
+    </ng-template>
+    <ng-template #emptymessage>
+      @if (!loading) {
+        <tr><td colspan="5" class="text-center p-4 text-500">No se encontraron clientes.</td></tr>
+      }
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal de Formulario -->
+<p-dialog [header]="isEditing ? 'Editar Cliente' : 'Nuevo Cliente'" [(visible)]="displayModal" [modal]="true" [style]="{ width: '450px' }" [draggable]="false" [resizable]="false" (onHide)="hideModal()">
+  <form [formGroup]="customerForm" (ngSubmit)="saveCustomer()" class="flex flex-column gap-4 mt-3">
+    
+    <div class="flex flex-column gap-2">
+      <label class="font-medium text-900">Nombre <span class="text-red-500">*</span></label>
+      <input type="text" pInputText formControlName="name" placeholder="Ej. Juan Pérez" />
+    </div>
+
+    <div class="flex flex-column gap-2">
+      <label class="font-medium text-900">Email <span class="text-red-500">*</span></label>
+      <input type="email" pInputText formControlName="email" placeholder="ejemplo@correo.com" />
+      @if (customerForm.get('email')?.invalid && customerForm.get('email')?.touched) {
+        <small class="text-red-500">Ingresa un correo electrónico válido.</small>
+      }
+    </div>
+
+    <div class="flex flex-column gap-2">
+      <label class="font-medium text-900">Teléfono</label>
+      <input type="text" pInputText formControlName="phone" placeholder="Ej. 555-1234" />
+    </div>
+
+    <div class="flex flex-column gap-2">
+      <label class="font-medium text-900">Dirección</label>
+      <input type="text" pInputText formControlName="address" placeholder="Av. Principal 123" />
+    </div>
+
+    <div class="flex justify-content-end gap-2 mt-4">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="hideModal()"></p-button>
+      <p-button label="Guardar" type="submit" [disabled]="customerForm.invalid" [loading]="saving"></p-button>
+    </div>
+  </form>
+</p-dialog>
+<p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
