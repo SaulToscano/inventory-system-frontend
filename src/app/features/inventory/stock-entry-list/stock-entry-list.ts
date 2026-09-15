@@ -16,6 +16,8 @@ import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { MessageService } from 'primeng/api';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 
 @Component({
   selector: 'app-stock-entry-list',
@@ -25,7 +27,8 @@ import { MessageService } from 'primeng/api';
   imports: [
     CommonModule, ReactiveFormsModule, TableModule, ButtonModule, 
     InputTextModule, SkeletonModule, TagModule, CurrencyPipe, DatePipe,
-    DialogModule, SelectModule, InputNumberModule, FormsModule
+    DialogModule, SelectModule, InputNumberModule, FormsModule,
+    IconFieldModule, InputIconModule
   ],
 })
 export class StockEntryList implements OnInit {
@@ -49,7 +52,6 @@ export class StockEntryList implements OnInit {
   selectedProductId: number | null = null;
   selectedSupplierId: number | null = null;
 
-  // Variables del Modal
   displayModal: boolean = false;
   saving: boolean = false;
   selectedFile: File | null = null;
@@ -63,7 +65,6 @@ export class StockEntryList implements OnInit {
   });
 
   ngOnInit() {
-    // 1. Cargar productos de forma segura
     this.productService.getProducts(0, 1000).subscribe({
       next: (res) => {
         this.products = [...res.content];
@@ -72,7 +73,6 @@ export class StockEntryList implements OnInit {
       error: (err) => console.error('Error cargando productos', err)
     });
 
-    // 2. Cargar proveedores de forma segura
     this.supplierService.getSuppliers(0, 1000).subscribe({
       next: (res) => {
         this.suppliers = [...res.content];
@@ -81,7 +81,6 @@ export class StockEntryList implements OnInit {
       error: (err) => console.error('Error cargando proveedores', err)
     });
 
-    // 3. Configurar el buscador
     this.searchSubject.pipe(
       debounceTime(400),
       distinctUntilChanged()
@@ -92,7 +91,6 @@ export class StockEntryList implements OnInit {
   }
 
   applyFilters() {
-    // Al cambiar un filtro, regresamos a la página 0
     this.fetchData(0, this.rows);
   }
 
@@ -127,7 +125,6 @@ export class StockEntryList implements OnInit {
     });
   }
 
-  // --- LÓGICA DEL MODAL ---
   showCreateModal() {
     this.entryForm.reset({ initialStock: 1, purchasePrice: 0, salePrice: 0 });
     this.selectedFile = null;
@@ -149,18 +146,16 @@ export class StockEntryList implements OnInit {
     if (this.entryForm.invalid) return;
     this.saving = true;
 
-    // 1. Preparamos el DTO exacto que espera Spring Boot
     const requestData = {
       productId: this.entryForm.value.productId,
       supplierId: this.entryForm.value.supplierId,
       initialStock: this.entryForm.value.initialStock,
-      currentStock: this.entryForm.value.initialStock, // Al inicio, el stock actual es el inicial
+      currentStock: this.entryForm.value.initialStock,
       purchasePrice: this.entryForm.value.purchasePrice,
       salePrice: this.entryForm.value.salePrice,
       enteredBy: 'Admin' // TODO: Cambiar por el email/nombre del usuario logueado en Supabase
     };
 
-    // 2. Construimos el FormData (Multipart)
     const formData = new FormData();
     formData.append('data', new Blob([JSON.stringify(requestData)], { type: 'application/json' }));
     
@@ -168,7 +163,6 @@ export class StockEntryList implements OnInit {
       formData.append('file', this.selectedFile);
     }
 
-    // 3. Enviamos al backend
     this.stockEntryService.createStockEntry(formData).subscribe({
       next: () => {
         this.saving = false;

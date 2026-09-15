@@ -12,6 +12,11 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputMaskModule } from 'primeng/inputmask';
+
+import { PhoneFormatPipe } from '../../../shared/phone-format.pipe';
 
 @Component({
   selector: 'app-customer-list',
@@ -21,7 +26,8 @@ import { MessageService, ConfirmationService } from 'primeng/api';
   providers: [ConfirmationService],
   imports: [
     CommonModule, ReactiveFormsModule, TableModule, ButtonModule, 
-    InputTextModule, SkeletonModule, DialogModule, ConfirmDialogModule
+    InputTextModule, SkeletonModule, DialogModule, ConfirmDialogModule,
+    IconFieldModule, InputIconModule, InputMaskModule, PhoneFormatPipe
   ],
 })
 export class CustomerList implements OnInit {
@@ -43,7 +49,6 @@ export class CustomerList implements OnInit {
   editingId: number | null = null;
   saving: boolean = false;
 
-  // Formulario: name y email son requeridos por tu backend
   customerForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]], 
@@ -118,7 +123,6 @@ export class CustomerList implements OnInit {
       },
       error: (err) => {
         this.saving = false;
-        // Mostramos el mensaje de error que viene de tu backend (ej: "Ya existe un cliente con ese correo")
         const errorMsg = err.error?.message || 'No se pudo guardar el cliente';
         this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMsg });
       }

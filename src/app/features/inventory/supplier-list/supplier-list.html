@@ -5,10 +5,17 @@
   </div>
 
   <div class="flex mb-3">
-    <span class="p-input-icon-left w-full md:w-20rem">
-      <i class="pi pi-search"></i>
+    <p-iconfield class="w-full md:w-20rem">
+      <p-inputicon>
+        <i class="pi pi-search"></i>
+      </p-inputicon>
       <input pInputText type="text" placeholder="Buscar proveedor..." (input)="onSearchInput($event)" class="w-full" />
-    </span>
+      @if (loading) {
+        <p-inputicon>
+          <i class="pi pi-spinner pi-spin"></i>
+        </p-inputicon>
+      }
+    </p-iconfield>
   </div>
 
   <p-table [value]="suppliers" [lazy]="true" (onLazyLoad)="loadData($event)" [paginator]="true" [rows]="rows" [totalRecords]="totalRecords" [loading]="false" [rowHover]="true" styleClass="p-datatable-striped">
@@ -32,7 +39,7 @@
         <tr>
           <td class="font-semibold text-800">{{ supplier.name }}</td>
           <td>{{ supplier.email || '-' }}</td>
-          <td>{{ supplier.phone || '-' }}</td>
+          <td>{{ supplier.phone | phoneFormat }}</td>
           <td class="text-center">
             <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="info" (onClick)="showEditModal(supplier)"></p-button>
             <p-button icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" (onClick)="confirmDelete(supplier)"></p-button>
@@ -60,7 +67,14 @@
     </div>
     <div class="flex flex-column gap-2">
       <label class="font-medium text-900">Teléfono</label>
-      <input type="text" pInputText formControlName="phone" />
+      <p-iconfield>
+        <p-inputicon>
+          <img alt="MX" src="https://flagcdn.com/w20/mx.png" style="width: 20px; height: 13.5px; border-radius: 2px;" />
+        </p-inputicon>
+        <p-inputMask formControlName="phone" mask="(999) 999-9999" [unmask]="true" placeholder="(555) 123-4567"
+          styleClass="w-full">
+        </p-inputMask>
+      </p-iconfield>
     </div>
     <div class="flex flex-column gap-2">
       <label class="font-medium text-900">Dirección</label>

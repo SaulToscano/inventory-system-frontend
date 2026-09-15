@@ -4,34 +4,39 @@
     <p-button label="Nueva Factura" icon="pi pi-plus" routerLink="/invoices/new"></p-button>
   </div>
 
-  <!-- BARRA DE FILTROS -->
+  <!-- FILTER BAR -->
   <div class="flex flex-column md:flex-row gap-3 mb-4">
     
-    <!-- Buscar por folio -->
-    <span class="p-input-icon-left flex-1 md:flex-none w-full md:w-20rem">
-      <i class="pi pi-search"></i>
+    <p-iconfield class="flex-1 md:flex-none w-full md:w-20rem">
+      <p-inputicon>
+        <i class="pi pi-search"></i>
+      </p-inputicon>
       <input pInputText type="text" placeholder="Buscar por folio..." (input)="onSearchInput($event)" class="w-full" />
-    </span>
+      @if (loading) {
+        <p-inputicon>
+          <i class="pi pi-spinner pi-spin"></i>
+        </p-inputicon>
+      }
+    </p-iconfield>
 
-    <!-- Filtro Cliente -->
     <p-select 
       [options]="customers" [(ngModel)]="selectedCustomerId" 
       optionLabel="name" optionValue="id"
       placeholder="Todos los clientes" [showClear]="true" [filter]="true" 
-      (onChange)="applyFilters()" class="flex-1 md:flex-none w-full md:w-15rem" styleClass="w-full">
+      (onChange)="applyFilters()" class="flex-1 md:flex-none w-full md:w-12rem">
     </p-select>
 
-    <!-- Filtro Producto -->
     <p-select 
       [options]="products" [(ngModel)]="selectedProductId" 
       optionLabel="name" optionValue="id"
       placeholder="Todos los productos" [showClear]="true" [filter]="true" 
-      (onChange)="applyFilters()" class="flex-1 md:flex-none w-full md:w-15rem" styleClass="w-full">
+      (onChange)="applyFilters()" class="flex-1 md:flex-none w-full md:w-12rem">
     </p-select>
+    
   </div>
 
-  <!-- TABLA DE FACTURAS -->
-  <p-table [value]="invoices" [lazy]="true" (onLazyLoad)="loadData($event)" [paginator]="true" [rows]="rows" [totalRecords]="totalRecords" [loading]="false" [rowHover]="true" styleClass="p-datatable-striped">
+  <!-- INVOICE TABLE -->
+  <p-table [value]="invoices" [lazy]="true" (onLazyLoad)="loadData($event)" [paginator]="true" [rows]="rows" [totalRecords]="totalRecords" [loading]="false" [rowHover]="true" class="p-datatable-striped">
     <ng-template #header>
       <tr>
         <th>Folio</th>
@@ -53,7 +58,7 @@
           <td><p-skeleton width="5rem"></p-skeleton></td>
           <td><p-skeleton width="5rem"></p-skeleton></td>
           <td class="text-center"><p-skeleton width="4rem"></p-skeleton></td>
-          <td class="text-center"><p-skeleton shape="circle" size="2rem" styleClass="inline-block"></p-skeleton></td>
+          <td class="text-center"><p-skeleton shape="circle" size="2rem" class="inline-block"></p-skeleton></td>
         </tr>
       } @else {
         <tr>
@@ -66,10 +71,7 @@
             <p-tag [severity]="getSeverity(invoice.status)" [value]="translateStatus(invoice.status)"></p-tag>
           </td>
           <td class="text-center">
-            <!-- Descargar PDF -->
             <p-button icon="pi pi-file-pdf" [text]="true" [rounded]="true" severity="secondary" pTooltip="Descargar PDF" (onClick)="downloadPdf(invoice.id)"></p-button>
-            
-            <!-- Registrar Pago (Deshabilitado si ya está pagado) -->
             <p-button icon="pi pi-dollar" [text]="true" [rounded]="true" severity="success" pTooltip="Registrar Abono" [disabled]="invoice.status === 'PAID'" (onClick)="showPaymentModal(invoice)"></p-button>
           </td>
         </tr>
@@ -84,7 +86,7 @@
   </p-table>
 </div>
 
-<!-- MODAL DE PAGO -->
+<!-- Payment Dialog -->
 <p-dialog header="Registrar Abono" [(visible)]="displayPaymentModal" [modal]="true" [style]="{ width: '400px' }" [draggable]="false" [resizable]="false" (onHide)="hidePaymentModal()">
   @if (selectedInvoice) {
     <div class="mb-4 p-3 border-round bg-blue-50 text-blue-900 border-1 border-blue-200">
@@ -100,7 +102,7 @@
   <form [formGroup]="paymentForm" (ngSubmit)="savePayment()" class="flex flex-column gap-4">
     <div class="flex flex-column gap-2">
       <label class="font-medium text-900">Monto del Abono <span class="text-red-500">*</span></label>
-      <p-inputNumber formControlName="amount" mode="currency" currency="USD" [min]="0.01" styleClass="w-full"></p-inputNumber>
+      <p-inputNumber formControlName="amount" mode="currency" currency="USD" [min]="0.01" class="w-full"></p-inputNumber>
       @if (paymentForm.get('amount')?.errors?.['max']) {
         <small class="text-red-500">El abono no puede superar el saldo pendiente.</small>
       }

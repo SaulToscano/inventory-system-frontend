@@ -7,60 +7,56 @@
     </div>
   </div>
 
-  <!-- PANEL DE FILTROS -->
-  <div class="p-4 border-1 surface-border border-round surface-50 grid p-fluid">
-    
-    <div class="col-12 md:col-4 lg:col-3">
+  <div class="p-4 border-1 surface-border border-round surface-50 flex flex-wrap gap-3 p-fluid">
+    <div class="flex-1 min-w-12rem">
       <label class="font-medium text-900 block mb-2">Tipo de Reporte</label>
-      <p-select [options]="reportTypes" [(ngModel)]="selectedReportType" optionLabel="label" optionValue="value" (onChange)="reportData = []" styleClass="w-full"></p-select>
+      <p-select [options]="reportTypes" [(ngModel)]="selectedReportType" optionLabel="label" optionValue="value" (onChange)="reportData = []" class="w-full"></p-select>
     </div>
 
-    <div class="col-12 md:col-4 lg:col-3">
+    <div class="flex-1 min-w-12rem">
       <label class="font-medium text-900 block mb-2">Rango de Fechas</label>
-      <p-datePicker [(ngModel)]="dateRange" selectionMode="range" [readonlyInput]="true" placeholder="Inicio - Fin" [showIcon]="true"></p-datePicker>
+      <p-datePicker [(ngModel)]="dateRange" selectionMode="range" [readonlyInput]="true" placeholder="Inicio - Fin" [showIcon]="true" class="w-full"></p-datePicker>
     </div>
 
     @if (showFilter('customer')) {
-      <div class="col-12 md:col-4 lg:col-3">
+      <div class="flex-1 min-w-12rem">
         <label class="font-medium text-900 block mb-2">Cliente</label>
-        <p-select [options]="customers" [(ngModel)]="selectedCustomerId" optionLabel="name" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true"></p-select>
+        <p-select [options]="customers" [(ngModel)]="selectedCustomerId" optionLabel="name" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" class="w-full"></p-select>
       </div>
     }
 
     @if (showFilter('category')) {
-      <div class="col-12 md:col-4 lg:col-3">
+      <div class="flex-1 min-w-12rem">
         <label class="font-medium text-900 block mb-2">Categoría</label>
-        <p-select [options]="categories" [(ngModel)]="selectedCategoryId" optionLabel="name" optionValue="id" placeholder="Todas" [showClear]="true" [filter]="true"></p-select>
+        <p-select [options]="categories" [(ngModel)]="selectedCategoryId" optionLabel="name" optionValue="id" placeholder="Todas" [showClear]="true" [filter]="true" class="w-full"></p-select>
       </div>
     }
 
     @if (showFilter('product')) {
-      <div class="col-12 md:col-4 lg:col-3">
+      <div class="flex-1 min-w-12rem">
         <label class="font-medium text-900 block mb-2">Producto</label>
-        <p-select [options]="products" [(ngModel)]="selectedProductId" optionLabel="name" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true"></p-select>
+        <p-select [options]="products" [(ngModel)]="selectedProductId" optionLabel="name" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" class="w-full"></p-select>
       </div>
     }
 
     @if (showFilter('supplier')) {
-      <div class="col-12 md:col-4 lg:col-3">
+      <div class="flex-1 min-w-12rem">
         <label class="font-medium text-900 block mb-2">Proveedor</label>
-        <p-select [options]="suppliers" [(ngModel)]="selectedSupplierId" optionLabel="name" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true"></p-select>
+        <p-select [options]="suppliers" [(ngModel)]="selectedSupplierId" optionLabel="name" optionValue="id" placeholder="Todos" [showClear]="true" [filter]="true" class="w-full"></p-select>
       </div>
     }
 
   </div>
 </div>
 
-<!-- PANEL DE PREVISUALIZACIÓN DE DATOS -->
 @if (reportData.length > 0) {
   <div class="card">
     <h3 class="text-xl font-bold text-700 mb-3">Resultados ({{ reportData.length }} registros)</h3>
     
-    <p-table [value]="reportData" [rowHover]="true" styleClass="p-datatable-striped p-datatable-sm">
+    <p-table [value]="reportData" [rowHover]="true" class="p-datatable-striped p-datatable-sm">
       
       @switch (selectedReportType) {
         
-        <!-- 1. VENTAS -->
         @case ('sells') {
           <ng-template #header>
             <tr>
@@ -86,7 +82,6 @@
           </ng-template>
         }
 
-        <!-- 2. GANANCIAS (PROFIT) -->
         @case ('profit') {
           <ng-template #header>
             <tr>
@@ -112,7 +107,6 @@
           </ng-template>
         }
 
-        <!-- 3. CUENTAS POR COBRAR (DUE) -->
         @case ('due') {
           <ng-template #header>
             <tr>
@@ -136,7 +130,6 @@
           </ng-template>
         }
 
-        <!-- 4. RESUMEN DE FACTURAS -->
         @case ('invoices') {
           <ng-template #header>
             <tr>
@@ -164,7 +157,6 @@
           </ng-template>
         }
 
-        <!-- 5. STOCK LOTES -->
         @case ('stock') {
           <ng-template #header>
             <tr>

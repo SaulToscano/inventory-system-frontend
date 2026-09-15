@@ -44,7 +44,7 @@ export class Login {
     if (error) {
       this.errorMessage = 'Credenciales incorrectas.';
     } else {
-      this.router.navigate(['/']); // Redirigir al layout principal tras éxito
+      this.router.navigate(['/']);
     }
   }
 }

@@ -1,5 +1,5 @@
 <div class="grid">
-  <!-- TARJETAS DE MÉTRICAS (KPIs) -->
+  <!-- METRIC CARDS (KPIs) -->
   <div class="col-12 md:col-6 lg:col-3">
     <div class="surface-card shadow-2 p-3 border-round border-left-3 border-blue-500 h-full flex flex-column justify-content-between">
       <div class="flex justify-content-between mb-3">
@@ -68,7 +68,7 @@
     </div>
   </div>
 
-  <!-- SECCIÓN INFERIOR: GRÁFICO Y TABLA -->
+  <!-- LOWER SECTION: CHART AND TABLE -->
   <div class="col-12 xl:col-6 mt-4">
     <div class="surface-card shadow-2 p-4 border-round h-full">
       <div class="flex justify-content-between align-items-center mb-4">
@@ -91,7 +91,7 @@
         <p-button label="Ver Todas" [text]="true" size="small" routerLink="/invoices"></p-button>
       </div>
       
-      <p-table [value]="recentInvoices" [rows]="5" styleClass="p-datatable-sm" [rowHover]="true">
+      <p-table [value]="recentInvoices" [rows]="5" class="p-datatable-sm" [rowHover]="true">
         <ng-template #header>
           <tr>
             <th>Folio</th>
@@ -106,7 +106,7 @@
             <td>{{ inv.customer?.name }}</td>
             <td class="text-right font-medium">{{ inv.netAmount | currency }}</td>
             <td class="text-center">
-              <p-tag [severity]="getSeverity(inv.status)" [value]="inv.status"></p-tag>
+              <p-tag [severity]="getSeverity(inv.status)" [value]="translateStatus(inv.status)"></p-tag>
             </td>
           </tr>
         </ng-template>

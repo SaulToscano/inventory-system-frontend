@@ -12,6 +12,11 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputMaskModule } from 'primeng/inputmask';
+
+import { PhoneFormatPipe } from '../../../shared/phone-format.pipe';
 
 @Component({
   selector: 'app-supplier-list',
@@ -21,7 +26,8 @@ import { MessageService, ConfirmationService } from 'primeng/api';
   providers: [ConfirmationService],
   imports: [
     CommonModule, ReactiveFormsModule, TableModule, ButtonModule, 
-    InputTextModule, SkeletonModule, DialogModule, ConfirmDialogModule
+    InputTextModule, SkeletonModule, DialogModule, ConfirmDialogModule,
+    IconFieldModule, InputIconModule, InputMaskModule, PhoneFormatPipe
   ],
 })
 export class SupplierList implements OnInit {

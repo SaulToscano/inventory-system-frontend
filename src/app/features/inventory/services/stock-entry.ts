@@ -30,7 +30,6 @@ export class StockEntryService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/stock-entries`;
 
-  // Obtener historial paginado con filtros
   getStockEntries(page: number, size: number, search?: string, productId?: number, supplierId?: number): Observable<PaginatedResponse<StockEntry>> {
     let params = new HttpParams()
       .set('page', page.toString())
@@ -43,7 +42,6 @@ export class StockEntryService {
     return this.http.get<PaginatedResponse<StockEntry>>(this.apiUrl, { params });
   }
 
-  // Preparado para cuando hagamos el modal (soporta FormData para el archivo)
   createStockEntry(formData: FormData): Observable<StockEntry> {
     return this.http.post<StockEntry>(this.apiUrl, formData);
   }

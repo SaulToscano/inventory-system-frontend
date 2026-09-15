@@ -6,23 +6,23 @@
 
   <form [formGroup]="invoiceForm" (ngSubmit)="generateInvoice()">
     
-    <!-- ENCABEZADO -->
-    <div class="grid p-fluid formgrid border-bottom-1 surface-border pb-4 mb-4">
-      <div class="col-12 md:col-4">
+    <!-- HEADING -->
+    <div class="grid p-fluid border-bottom-1 surface-border pb-4 mb-4">
+      <div class="col-12 md:col-4 flex flex-column gap-2">
         <label class="font-medium text-900">Cliente <span class="text-red-500">*</span></label>
-        <p-select [options]="customers" formControlName="customerId" optionLabel="name" optionValue="id" placeholder="Selecciona un cliente" [filter]="true"></p-select>
+        <p-select [options]="customers" formControlName="customerId" optionLabel="name" optionValue="id" placeholder="Selecciona un cliente" [filter]="true" styleClass="w-full"></p-select>
       </div>
-      <div class="col-12 md:col-4">
+      <div class="col-12 md:col-4 flex flex-column gap-2">
         <label class="font-medium text-900">Fecha de Factura <span class="text-red-500">*</span></label>
-        <p-datePicker formControlName="issueDate" [showIcon]="true"></p-datePicker>
+        <p-datePicker formControlName="issueDate" [showIcon]="true" styleClass="w-full"></p-datePicker>
       </div>
-      <div class="col-12 md:col-4">
+      <div class="col-12 md:col-4 flex flex-column gap-2">
         <label class="font-medium text-900">No. Factura</label>
         <input pInputText value="Generado automáticamente" [disabled]="true" class="w-full" />
       </div>
     </div>
 
-    <!-- TABLA DE PRODUCTOS (FORM ARRAY) -->
+    <!-- PRODUCT TABLE (FORM ARRAY) -->
     <div class="mb-4">
       <div class="flex justify-content-between align-items-center mb-3">
         <h3 class="text-xl font-bold text-700 m-0">Productos</h3>
@@ -33,17 +33,17 @@
         @for (item of itemsFormArray.controls; track $index) {
           <div [formGroupName]="$index" class="p-3 border-1 surface-border border-round flex flex-wrap gap-3 align-items-end surface-50">
             
-            <div class="flex-1 min-w-15rem">
+            <div class="flex-1 min-w-15rem flex flex-column gap-2">
               <label class="text-sm font-medium">Categoría</label>
               <p-select [options]="categories" formControlName="categoryId" optionLabel="name" optionValue="id" placeholder="Categoría" styleClass="w-full"></p-select>
             </div>
 
-            <div class="flex-1 min-w-15rem">
+            <div class="flex-1 min-w-15rem flex flex-column gap-2">
               <label class="text-sm font-medium">Producto</label>
               <p-select [options]="productsByRow[$index]" formControlName="productId" optionLabel="name" optionValue="id" placeholder="Producto" styleClass="w-full"></p-select>
             </div>
 
-            <div class="flex-1 min-w-15rem">
+            <div class="flex-1 min-w-12rem flex flex-column gap-2">
               <label class="text-sm font-medium">Lote (Stock Disp.)</label>
               <p-select [options]="lotsByRow[$index]" formControlName="stockEntryId" optionLabel="id" optionValue="id" placeholder="Lote" styleClass="w-full">
                 <ng-template let-lote pTemplate="item">
@@ -55,37 +55,36 @@
               </p-select>
             </div>
 
-            <div class="w-8rem">
+            <!-- Cantidad: Reducido a w-6rem y agregado inputStyleClass -->
+            <div class="w-6rem flex flex-column gap-2">
               <label class="text-sm font-medium">Cantidad</label>
-              <p-inputNumber formControlName="quantity" [showButtons]="true" [min]="1" styleClass="w-full"></p-inputNumber>
+              <p-inputNumber formControlName="quantity" [showButtons]="true" [min]="1" styleClass="w-full" inputStyleClass="w-full"></p-inputNumber>
             </div>
 
-            <div class="w-10rem">
+            <!-- Precio Unitario: Reducido a w-8rem y agregado inputStyleClass -->
+            <div class="w-8rem flex flex-column gap-2">
               <label class="text-sm font-medium">Precio Unit.</label>
-              <p-inputNumber formControlName="unitPrice" mode="currency" currency="USD" styleClass="w-full"></p-inputNumber>
+              <p-inputNumber formControlName="unitPrice" mode="currency" currency="USD" styleClass="w-full" inputStyleClass="w-full"></p-inputNumber>
             </div>
 
-            <div class="w-15rem flex gap-2">
-              <div class="flex-1">
+            <!-- Descuento: Reducido el contenedor padre a w-13rem -->
+            <div class="w-13rem flex gap-2">
+              <div class="flex-1 flex flex-column gap-2">
                 <label class="text-sm font-medium">Descuento</label>
-                <p-inputNumber formControlName="discount" styleClass="w-full"></p-inputNumber>
+                <p-inputNumber formControlName="discount" styleClass="w-full" inputStyleClass="w-full"></p-inputNumber>
               </div>
-              <div class="w-5rem">
+              <div class="w-5rem flex flex-column gap-2">
                 <label class="text-sm font-medium">Tipo</label>
-                <!-- Simplificamos con un dropdown básico o botones -->
-                <select formControlName="discountType" class="p-inputtext p-component w-full p-2 h-full">
-                  <option value="FIXED_AMOUNT">$</option>
-                  <option value="PERCENTAGE">%</option>
-                </select>
+                <p-select formControlName="discountType" [options]="discountTypes" optionLabel="label" optionValue="value" styleClass="w-full"></p-select>
               </div>
             </div>
 
-            <div class="w-10rem text-right">
-              <label class="text-sm font-medium block">Total Fila</label>
+            <div class="w-9rem text-right flex flex-column justify-content-end pb-2">
+              <label class="text-sm font-medium block mb-1">Total Fila</label>
               <span class="text-xl font-bold text-primary">{{ item.get('subTotal')?.value | currency }}</span>
             </div>
 
-            <div>
+            <div class="flex flex-column justify-content-end pb-2">
               <p-button icon="pi pi-trash" severity="danger" [outlined]="true" (onClick)="confirmRemoveItem($index)"></p-button>
             </div>
 
@@ -94,35 +93,33 @@
       </div>
     </div>
 
-    <!-- PANEL INFERIOR: PAGO Y TOTALES -->
+    <!-- BOTTOM PANEL: PAYMENT AND TOTALS -->
     <div class="grid mt-5 border-top-1 surface-border pt-4">
       
-      <!-- Zona de Pagos -->
+      <!-- Payment Area -->
       <div class="col-12 md:col-6">
         <div class="flex align-items-center gap-2 mb-3">
-          <input type="checkbox" formControlName="makePayment" id="makePayment" class="p-checkbox p-component" />
-          <label for="makePayment" class="font-bold text-900">Registrar pago inicial ahora</label>
+          <p-checkbox formControlName="makePayment" inputId="makePayment" [binary]="true"></p-checkbox>
+          <label for="makePayment" class="font-bold text-900 cursor-pointer">Registrar pago inicial ahora</label>
         </div>
 
         @if (invoiceForm.get('makePayment')?.value) {
-          <div class="p-4 border-1 surface-border border-round surface-50">
-            <div class="flex gap-3 mb-3">
-              <div class="flex-1">
-                <label class="font-medium text-900 block mb-2">Método de Pago</label>
-                <select formControlName="paymentMethod" class="p-inputtext p-component w-full p-2">
-                  <option value="CASH">Efectivo</option>
-                  <option value="BANK_TRANSFER">Transferencia Bancaria</option>
-                </select>
+          <div class="p-4 border-1 surface-border border-round surface-50 flex flex-column gap-3">
+            <div class="flex gap-3">
+              <div class="flex-1 flex flex-column gap-2">
+                <label class="font-medium text-900">Método de Pago</label>
+                <p-select formControlName="paymentMethod" [options]="paymentMethods" optionLabel="label" optionValue="value" styleClass="w-full"></p-select>
               </div>
-              <div class="flex-1">
-                <label class="font-medium text-900 block mb-2">Monto a Pagar</label>
-                <p-inputNumber formControlName="paymentAmount" mode="currency" currency="USD" styleClass="w-full"></p-inputNumber>
+              <div class="flex-1 flex flex-column gap-2">
+                <label class="font-medium text-900">Monto a Pagar</label>
+                <!-- También agregamos inputStyleClass aquí por precaución -->
+                <p-inputNumber formControlName="paymentAmount" mode="currency" currency="USD" styleClass="w-full" inputStyleClass="w-full"></p-inputNumber>
               </div>
             </div>
             
             @if (invoiceForm.get('paymentMethod')?.value === 'BANK_TRANSFER') {
-              <div>
-                <label class="font-medium text-900 block mb-2">Referencia / ID Transacción</label>
+              <div class="flex flex-column gap-2">
+                <label class="font-medium text-900">Referencia / ID Transacción</label>
                 <input pInputText type="text" formControlName="bankReference" class="w-full" />
               </div>
             }
@@ -130,7 +127,7 @@
         }
       </div>
 
-      <!-- Zona de Totales -->
+      <!-- Totals Area -->
       <div class="col-12 md:col-6 flex flex-column align-items-end text-right">
         <div class="w-full md:w-20rem">
           <div class="flex justify-content-between mb-2 text-600">

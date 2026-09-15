@@ -13,6 +13,8 @@ import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 
 @Component({
   selector: 'app-product-list',
@@ -23,7 +25,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule, DataViewModule, ButtonModule, 
     SharedModule, SkeletonModule, SelectModule, InputTextModule,
-    DialogModule, ConfirmDialogModule
+    DialogModule, ConfirmDialogModule, IconFieldModule, InputIconModule
   ],
 })
 export class ProductList implements OnInit {
@@ -39,17 +41,14 @@ export class ProductList implements OnInit {
   categories: Category[] = [];
   layout: 'list' | 'grid' = 'list';
 
-  // Paginación
   totalRecords: number = 0;
   rows: number = 10;
   loading: boolean = true;
 
-  // Filtros
   searchQuery: string = '';
   selectedCategory: number | null = null;
   searchSubject: Subject<string> = new Subject<string>();
 
-  // --- VARIABLES DEL MODAL ---
   displayModal: boolean = false;
   isEditing: boolean = false;
   editingId: number | null = null;
@@ -168,7 +167,6 @@ export class ProductList implements OnInit {
     this.messageService.add({ severity: 'error', summary: 'Error', detail: message });
   }
 
-  // --- LÓGICA DE ELIMINACIÓN ---
   confirmDelete(product: Product) {
     this.confirmationService.confirm({
       message: `¿Estás seguro de que deseas eliminar "${product.name}"?`,

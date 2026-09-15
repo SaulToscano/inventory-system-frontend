@@ -99,12 +99,12 @@ export class Dashboard implements OnInit {
       datasets: [
         {
           label: 'Costo de Mercancía',
-          backgroundColor: '#f87171', // Rojo suave
+          backgroundColor: '#f87171',
           data: [cost]
         },
         {
           label: 'Ganancia Neta (Profit)',
-          backgroundColor: '#4ade80', // Verde suave
+          backgroundColor: '#4ade80',
           data: [profit]
         }
       ]
@@ -129,5 +129,14 @@ export class Dashboard implements OnInit {
 
   getSeverity(status: string): 'success' | 'warn' | 'danger' {
     return status === 'PAID' ? 'success' : status === 'PARTIAL_PAID' ? 'warn' : 'danger';
+  }
+
+  translateStatus(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'PAID': 'Pagado',
+      'PARTIAL_PAID': 'Abonado',
+      'PENDING': 'Pendiente'
+    };
+    return statusMap[status] || status;
   }
 }

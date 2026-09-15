@@ -17,6 +17,8 @@ import { SelectModule } from 'primeng/select';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { MessageService } from 'primeng/api';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 
 @Component({
   selector: 'app-invoice-list',
@@ -27,7 +29,7 @@ import { MessageService } from 'primeng/api';
     CommonModule, FormsModule, ReactiveFormsModule, RouterModule,
     TableModule, ButtonModule, InputTextModule, SkeletonModule, 
     TagModule, SelectModule, DialogModule, InputNumberModule,
-    CurrencyPipe, DatePipe
+    CurrencyPipe, DatePipe, IconFieldModule, InputIconModule
   ],
 })
 export class InvoiceList implements OnInit {
@@ -46,13 +48,11 @@ export class InvoiceList implements OnInit {
   rows: number = 10;
   loading: boolean = true;
 
-  // Filtros
   searchQuery: string = '';
   selectedCustomerId: number | null = null;
   selectedProductId: number | null = null;
   searchSubject: Subject<string> = new Subject<string>();
 
-  // Modal de Pago
   displayPaymentModal: boolean = false;
   savingPayment: boolean = false;
   selectedInvoice: Invoice | null = null;
@@ -64,7 +64,6 @@ export class InvoiceList implements OnInit {
   });
 
   ngOnInit() {
-    // Llenar catálogos para los filtros
     this.customerService.getCustomers(0, 1000).subscribe(res => {
       this.customers = [...res.content];
       this.cdr.markForCheck();
@@ -115,8 +114,6 @@ export class InvoiceList implements OnInit {
     });
   }
 
-  // --- ACCIONES DE FACTURA ---
-
   downloadPdf(invoiceId: number) {
     this.invoiceService.downloadPdf(invoiceId);
   }
@@ -139,17 +136,14 @@ export class InvoiceList implements OnInit {
     }
   }
 
-  // --- LÓGICA DEL MODAL DE PAGOS ---
-
   showPaymentModal(invoice: Invoice) {
     this.selectedInvoice = invoice;
     this.paymentForm.reset({
       method: 'CASH',
-      amount: invoice.balanceDue, // Sugerimos liquidar el saldo total por defecto
+      amount: invoice.balanceDue,
       bankReference: ''
     });
     
-    // Validamos que no pague más de lo que debe
     this.paymentForm.get('amount')?.setValidators([Validators.required, Validators.min(0.01), Validators.max(invoice.balanceDue)]);
     this.paymentForm.get('amount')?.updateValueAndValidity();
     
@@ -169,7 +163,7 @@ export class InvoiceList implements OnInit {
       next: () => {
         this.savingPayment = false;
         this.hidePaymentModal();
-        this.fetchData(0, this.rows); // Recargamos para actualizar el saldo y el estado
+        this.fetchData(0, this.rows);
         this.messageService.add({ severity: 'success', summary: 'Abono Registrado', detail: 'El pago se aplicó correctamente a la factura.' });
       },
       error: (err) => {

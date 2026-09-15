@@ -33,7 +33,6 @@ export class ReportList implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private messageService = inject(MessageService);
 
-  // Tipos de Reporte
   reportTypes = [
     { label: 'Ventas Detalladas', value: 'sells' },
     { label: 'Ganancias Netas (Profit)', value: 'profit' },
@@ -42,7 +41,6 @@ export class ReportList implements OnInit {
     { label: 'Existencias (Stock Lotes)', value: 'stock' }
   ];
 
-  // Estado del formulario
   selectedReportType: string = 'sells';
   dateRange: Date[] | null = null;
   selectedCategoryId: number | null = null;
@@ -50,13 +48,11 @@ export class ReportList implements OnInit {
   selectedSupplierId: number | null = null;
   selectedCustomerId: number | null = null;
 
-  // Catálogos
   categories: any[] = [];
   products: any[] = [];
   suppliers: any[] = [];
   customers: any[] = [];
 
-  // Datos de la tabla
   reportData: any[] = [];
   loadingData: boolean = false;
   downloadingPdf: boolean = false;
@@ -72,7 +68,6 @@ export class ReportList implements OnInit {
     this.customerService.getCustomers(0, 1000).subscribe(res => this.customers = res.content);
   }
 
-  // Muestra u oculta filtros según el reporte seleccionado para no confundir al usuario
   showFilter(filterName: string): boolean {
     const type = this.selectedReportType;
     if (filterName === 'category' || filterName === 'product') {
@@ -87,7 +82,6 @@ export class ReportList implements OnInit {
     return true;
   }
 
-  // Prepara el payload convirtiendo las fechas al formato LocalDateTime
   private buildFilters(): ReportFilterRequest {
     let dateFrom = null;
     let dateTo = null;
@@ -95,13 +89,12 @@ export class ReportList implements OnInit {
     if (this.dateRange && this.dateRange.length > 0) {
       if (this.dateRange[0]) {
         dateFrom = new Date(this.dateRange[0]);
-        dateFrom.setHours(0, 0, 0, 0); // Inicio del día
+        dateFrom.setHours(0, 0, 0, 0);
       }
       if (this.dateRange[1]) {
         dateTo = new Date(this.dateRange[1]);
-        dateTo.setHours(23, 59, 59, 999); // Fin del día
+        dateTo.setHours(23, 59, 59, 999);
       } else if (this.dateRange[0]) {
-        // Si seleccionó un solo día en el rango, usamos ese mismo día como fin
         dateTo = new Date(this.dateRange[0]);
         dateTo.setHours(23, 59, 59, 999);
       }
@@ -147,7 +140,6 @@ export class ReportList implements OnInit {
 
     this.reportService.downloadReportPdf(this.selectedReportType, filters).subscribe({
       next: (blob) => {
-        // Crear una URL temporal para forzar la descarga del PDF
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -168,7 +160,6 @@ export class ReportList implements OnInit {
     });
   }
 
-  // Método helper para recalcular totales en el frontend y mostrarlos abajo
   calculateTotal(field: string): number {
     return this.reportData.reduce((acc, curr) => acc + (curr[field] || 0), 0);
   }

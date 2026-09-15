@@ -42,7 +42,6 @@ export class InvoiceService {
   }
 
   downloadPdf(invoiceId: number) {
-    // Abrimos el PDF generado por Spring Boot en una nueva pestaña
     window.open(`${this.apiUrl}/${invoiceId}/pdf`, '_blank');
   }
 }

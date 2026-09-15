@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms'; // <-- IMPORTANTE
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
 import { Category, CategoryService } from '../services/category';
 
@@ -11,7 +11,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SkeletonModule } from 'primeng/skeleton';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmDialogModule } from 'primeng/confirmdialog'; 
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 
 @Component({
   selector: 'app-category-list',
@@ -20,7 +22,8 @@ import { ConfirmationService } from 'primeng/api';
   styleUrl: './category-list.scss',
   imports: [
     CommonModule, ReactiveFormsModule, TableModule, 
-    ButtonModule, InputTextModule, SkeletonModule, DialogModule, ConfirmDialogModule
+    ButtonModule, InputTextModule, SkeletonModule, DialogModule, ConfirmDialogModule,
+    IconFieldModule, InputIconModule
   ],
   providers: [ConfirmationService],
 })
@@ -29,6 +32,7 @@ export class CategoryList implements OnInit {
   private categoryService = inject(CategoryService);
   private cdr = inject(ChangeDetectorRef);
   private fb = inject(FormBuilder);
+  private messageService = inject(MessageService); // <-- Inyección del servicio de mensajes
 
   categories: Category[] = [];
   totalRecords: number = 0;
@@ -79,13 +83,11 @@ export class CategoryList implements OnInit {
         this.categories = [...response.content];
         this.totalRecords = response.totalElements;
         this.loading = false;
-        //this.cdr.detectChanges();
         this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error cargando categorías', err);
         this.loading = false;
-        //this.cdr.detectChanges();
         this.cdr.markForCheck();
       }
     });
@@ -120,29 +122,31 @@ export class CategoryList implements OnInit {
     const categoryData = this.categoryForm.value;
 
     if (this.isEditing && this.editingId) {
-      // Actualizar
       this.categoryService.updateCategory(this.editingId, categoryData).subscribe({
-        next: () => this.handleSuccess(),
-        error: (err) => this.handleError(err)
+        next: () => this.handleSuccess('Categoría actualizada correctamente'),
+        error: (err) => this.handleError('No se pudo actualizar la categoría', err)
       });
     } else {
-      // Crear
       this.categoryService.createCategory(categoryData).subscribe({
-        next: () => this.handleSuccess(),
-        error: (err) => this.handleError(err)
+        next: () => this.handleSuccess('Categoría creada correctamente'),
+        error: (err) => this.handleError('No se pudo crear la categoría', err)
       });
     }
   }
 
-  private handleSuccess() {
+  private handleSuccess(message: string) {
     this.saving = false;
     this.hideModal();
-    this.fetchData(0, this.rows); // Recargar la tabla
+    this.fetchData(0, this.rows);
+    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: message });
   }
 
-  private handleError(err: any) {
-    console.error('Error guardando categoría', err);
+  private handleError(message: string, err: any) {
+    console.error(message, err);
     this.saving = false;
+    
+    const errorDetail = err?.error?.message || message;
+    this.messageService.add({ severity: 'error', summary: 'Error', detail: errorDetail });
   }
 
   confirmDelete(category: Category) {
@@ -152,17 +156,17 @@ export class CategoryList implements OnInit {
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Sí, eliminar',
       rejectLabel: 'Cancelar',
-      acceptButtonStyleClass: 'p-button-danger', // Botón rojo
+      acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
-        // Lógica si el usuario hace clic en "Sí"
         this.categoryService.deleteCategory(category.id).subscribe({
           next: () => {
-            // Recargamos la tabla (volviendo a la página 0)
             this.fetchData(0, this.rows);
+            this.messageService.add({ severity: 'success', summary: 'Eliminado', detail: 'Categoría eliminada' });
           },
           error: (err) => {
-            // NOTA: Aquí podría dar error si la categoría tiene productos vinculados
             console.error('Error al eliminar la categoría', err);
+            const errorDetail = 'No se pudo eliminar la categoría';
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: errorDetail });
           }
         });
       }

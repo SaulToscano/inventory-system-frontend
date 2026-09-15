@@ -19,12 +19,10 @@ export class ReportService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/reports`;
 
-  // Obtiene los datos en formato JSON para la tabla de previsualización
   getReportData(reportType: string, filters: ReportFilterRequest): Observable<any[]> {
     return this.http.post<any[]>(`${this.apiUrl}/${reportType}`, filters);
   }
 
-  // Obtiene el archivo PDF crudo (Blob) para forzar la descarga en el navegador
   downloadReportPdf(reportType: string, filters: ReportFilterRequest): Observable<Blob> {
     return this.http.post(`${this.apiUrl}/${reportType}/pdf`, filters, {
       responseType: 'blob'

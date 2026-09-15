@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 import { InvoiceService } from '../services/invoice';
 import { CustomerService } from '../services/customer';
@@ -13,7 +13,8 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { DatePickerModule } from 'primeng/datepicker'; // O CalendarModule dependiendo de tu versión
+import { DatePickerModule } from 'primeng/datepicker';
+import { CheckboxModule } from 'primeng/checkbox';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TableModule } from 'primeng/table';
@@ -25,8 +26,9 @@ import { TableModule } from 'primeng/table';
   styleUrl: './invoice-create.scss',
   providers: [ConfirmationService],
   imports: [
-    CommonModule, ReactiveFormsModule, ButtonModule, InputTextModule, 
-    SelectModule, InputNumberModule, DatePickerModule, ConfirmDialogModule, TableModule
+    CommonModule, ReactiveFormsModule, RouterModule, ButtonModule, InputTextModule, 
+    SelectModule, InputNumberModule, DatePickerModule, ConfirmDialogModule, TableModule,
+    CheckboxModule
   ],
 })
 export class InvoiceCreate implements OnInit {
@@ -47,16 +49,25 @@ export class InvoiceCreate implements OnInit {
 
   saving: boolean = false;
   
-  // Totales globales
   totalGross: number = 0;
   totalDiscount: number = 0;
   netAmount: number = 0;
+
+  discountTypes = [
+    { label: '$', value: 'FIXED_AMOUNT' },
+    { label: '%', value: 'PERCENTAGE' }
+  ];
+
+  paymentMethods = [
+    { label: 'Efectivo', value: 'CASH' },
+    { label: 'Transferencia Bancaria', value: 'BANK_TRANSFER' }
+  ];
 
   invoiceForm: FormGroup = this.fb.group({
     customerId: [null, Validators.required],
     issueDate: [new Date(), Validators.required],
     items: this.fb.array([]),
-    makePayment: [false], // Checkbox o switch para pagar ahora
+    makePayment: [false],
     paymentMethod: ['CASH'],
     paymentAmount: [0],
     bankReference: ['']
@@ -67,13 +78,10 @@ export class InvoiceCreate implements OnInit {
   }
 
   ngOnInit() {
-    // Cargar catálogos base
     this.customerService.getCustomers(0, 1000).subscribe(res => this.customers = res.content);
     this.categoryService.getCategories(0, 1000).subscribe(res => this.categories = res.content);
-    this.addItem(); // Agregamos la primera fila por defecto
+    this.addItem();
   }
-
-  // --- LÓGICA DEL FORM ARRAY (FILAS) ---
 
   addItem() {
     const itemGroup = this.fb.group({
@@ -90,7 +98,6 @@ export class InvoiceCreate implements OnInit {
 
     const index = this.itemsFormArray.length;
 
-    // Suscripción 1: Cuando cambia la categoría, habilitar productos
     itemGroup.get('categoryId')?.valueChanges.subscribe(catId => {
       const prodCtrl = itemGroup.get('productId');
       prodCtrl?.reset();
@@ -104,7 +111,6 @@ export class InvoiceCreate implements OnInit {
       }
     });
 
-    // Suscripción 2: Cuando cambia el producto, habilitar Lotes
     itemGroup.get('productId')?.valueChanges.subscribe(prodId => {
       const stockCtrl = itemGroup.get('stockEntryId');
       stockCtrl?.reset();
@@ -112,7 +118,6 @@ export class InvoiceCreate implements OnInit {
       if (prodId) {
         stockCtrl?.enable();
         this.stockService.getStockEntries(0, 500, '', prodId).subscribe(res => {
-          // Filtramos para mostrar solo lotes con stock disponible
           this.lotsByRow[index] = res.content.filter((lote: any) => lote.currentStock > 0);
         });
       } else {
@@ -120,21 +125,18 @@ export class InvoiceCreate implements OnInit {
       }
     });
 
-    // Suscripción 3: Cuando selecciona el lote, fijar precio y maxQuantity
     itemGroup.get('stockEntryId')?.valueChanges.subscribe(stockId => {
       if (stockId) {
         const selectedLot = this.lotsByRow[index].find(l => l.id === stockId);
         if (selectedLot) {
           itemGroup.get('unitPrice')?.setValue(selectedLot.salePrice);
           itemGroup.get('maxQuantity')?.setValue(selectedLot.currentStock);
-          // Agregamos validador dinámico para no exceder el stock
           itemGroup.get('quantity')?.setValidators([Validators.required, Validators.min(1), Validators.max(selectedLot.currentStock)]);
           itemGroup.get('quantity')?.updateValueAndValidity();
         }
       }
     });
 
-    // Suscripción 4: Recalcular subtotal si cambian cantidades o precios
     itemGroup.valueChanges.subscribe(() => {
       this.calculateRowSubtotal(itemGroup);
     });
@@ -153,8 +155,6 @@ export class InvoiceCreate implements OnInit {
     });
   }
 
-  // --- CÁLCULOS MATEMÁTICOS ---
-
   calculateRowSubtotal(group: FormGroup) {
     const qty = group.get('quantity')?.value || 0;
     const price = group.get('unitPrice')?.value || 0;
@@ -168,7 +168,7 @@ export class InvoiceCreate implements OnInit {
     if (type === 'PERCENTAGE') discountAmount = gross * (discount / 100);
 
     let net = gross - discountAmount;
-    group.get('subTotal')?.setValue(net > 0 ? net : 0, { emitEvent: false }); // emitEvent: false evita ciclos infinitos
+    group.get('subTotal')?.setValue(net > 0 ? net : 0, { emitEvent: false });
     
     this.calculateGlobalTotals();
   }
@@ -194,8 +194,6 @@ export class InvoiceCreate implements OnInit {
     const payAmount = this.invoiceForm.get('paymentAmount')?.value || 0;
     return this.invoiceForm.get('makePayment')?.value ? (this.netAmount - payAmount) : this.netAmount;
   }
-
-  // --- GUARDADO ---
 
   generateInvoice() {
     if (this.invoiceForm.invalid || this.itemsFormArray.length === 0) {
