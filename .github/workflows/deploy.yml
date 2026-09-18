@@ -24,9 +24,9 @@ jobs:
         run: npm ci
 
       - name: 4. Compilar Angular
-        run: npx ng build --configuration production --base-href /inventory-system-frontend/
+        run: npx ng build --configuration production --base-href /
 
-      - name: 5. Arreglar rutas (Truco para SPA)
+      - name: 5. Arreglar rutas
         run: cp dist/inventory-frontend/browser/index.html dist/inventory-frontend/browser/404.html
 
       - name: 6. Desplegar a GitHub Pages
@@ -34,3 +34,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist/inventory-frontend/browser
+          cname: erp.saul-toscano.fyi
