@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 
 import { ReportService } from '../inventory/services/report';
@@ -19,7 +19,7 @@ import { RouterModule } from '@angular/router';
   styleUrl: './dashboard.scss',
   imports: [
     CommonModule, ChartModule, TableModule, ButtonModule, 
-    TagModule, SkeletonModule, RouterModule, CurrencyPipe, DatePipe
+    TagModule, SkeletonModule, RouterModule, CurrencyPipe,
   ],
 })
 export class Dashboard implements OnInit {
