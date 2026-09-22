@@ -22,8 +22,8 @@ export class Login {
   private router = inject(Router);
 
   loginForm: FormGroup = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', Validators.required]
+    email: ['admin@gmail.com', [Validators.required, Validators.email]],
+    password: ['123456', Validators.required]
   });
 
   loading = false;
